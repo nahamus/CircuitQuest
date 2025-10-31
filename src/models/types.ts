@@ -1,4 +1,4 @@
-export type GateType = 'INPUT'|'OUTPUT'|'AND'|'OR'|'XOR'|'NOT'|'BUF'|'SPLIT';
+export type GateType = 'INPUT'|'OUTPUT'|'AND'|'OR'|'XOR'|'NOT'|'BUF'|'SPLIT'|'NAND'|'NOR'|'XNOR';
 export type PortDir = 'In'|'Out';
 
 export interface Port {

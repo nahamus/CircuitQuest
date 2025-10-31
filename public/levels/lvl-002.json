@@ -1,0 +1,18 @@
+{
+  "id": "lvl-002",
+  "title": "Split Decision",
+  "description": "Drive both outputs correctly using splits and basic logic.",
+  "grid": { "cols": 28, "rows": 16, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 5,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": false, "x": 1, "y": 11, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "out1", "label": "F1", "target": true,  "x": 26, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "out2", "label": "F2", "target": true,  "x": 26, "y": 10, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 3, "OR": 2, "NOT": 2, "BUF": 4, "XOR": 1, "SPLIT": 3, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 10
+}
+
+

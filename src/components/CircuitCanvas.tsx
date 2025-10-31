@@ -3,6 +3,7 @@ import { useStore } from '../state/useStore';
 import type { Gate, Wire, GateType } from '../models/types';
 import clsx from 'clsx';
 import './CircuitCanvas.css';
+import { playClick, playSnap, playSuccess } from '../utils/sound';
 
 const GATE_COLORS: Record<GateType, string> = {
   INPUT: '#00ff88',
@@ -13,6 +14,9 @@ const GATE_COLORS: Record<GateType, string> = {
   NOT: '#ffff00',
   BUF: '#8888ff',
   SPLIT: '#88ff88',
+  NAND: '#00bcd4',
+  NOR: '#ff6e40',
+  XNOR: '#c56cf0',
 };
 
 const GATE_LABELS: Record<GateType, string> = {
@@ -24,6 +28,9 @@ const GATE_LABELS: Record<GateType, string> = {
   NOT: '1',
   BUF: '1',
   SPLIT: 'T',
+  NAND: '⊼',
+  NOR: '⊽',
+  XNOR: '≡',
 };
 
 export default function CircuitCanvas() {
@@ -92,7 +99,7 @@ export default function CircuitCanvas() {
     const svgWidth = rect.width;
     const svgHeight = rect.height;
     
-    // Account for preserveAspectRatio="xMidYMid meet"
+    // Account for preserveAspectRatio="xMidYMin meet"
     const viewBoxAspect = viewBox.width / viewBox.height;
     const svgAspect = svgWidth / svgHeight;
     
@@ -101,15 +108,15 @@ export default function CircuitCanvas() {
     let offsetY = 0;
     
     if (viewBoxAspect > svgAspect) {
-      // ViewBox is wider - letterboxing (bars top/bottom)
+      // ViewBox is wider - letterboxing (bars top/bottom), YMin => align to top (no vertical offset)
       scale = svgWidth / viewBox.width;
-      const scaledHeight = viewBox.height * scale;
-      offsetY = (svgHeight - scaledHeight) / 2;
+      offsetY = 0;
     } else {
-      // ViewBox is taller - pillarboxing (bars left/right)
+      // ViewBox is taller - pillarboxing (bars left/right), keep horizontal centering
       scale = svgHeight / viewBox.height;
       const scaledWidth = viewBox.width * scale;
       offsetX = (svgWidth - scaledWidth) / 2;
+      offsetY = 0;
     }
     
     // Convert screen coordinates, accounting for letterboxing/pillarboxing
@@ -184,7 +191,23 @@ export default function CircuitCanvas() {
     const [sx, sy] = snapToGrid(wx, wy);
 
     if (armedGateType) {
+      // Prevent placing on top of INPUT/OUTPUT or within the top floating bar
+      const snap = ui.gridSnap;
+      const gateHalf = (snap * 0.8) / 2;
+      const hitIO = gates.some(g =>
+        (g.type === 'INPUT' || g.type === 'OUTPUT') &&
+        Math.abs(sx - g.x) <= gateHalf &&
+        Math.abs(sy - g.y) <= gateHalf
+      );
+      const barY = Math.floor(snap * 0.75);
+      const barHeight = snap * 2;
+      const inBar = sy >= (barY - barHeight / 2) && sy <= (barY + barHeight / 2);
+      if (hitIO || inBar) {
+        // Ignore placement; keep armed so user can click elsewhere
+        return;
+      }
       placeGate(armedGateType, sx, sy);
+      playClick();
       setArmedGateType(null);
     } else {
       setSelection();
@@ -245,12 +268,15 @@ export default function CircuitCanvas() {
     const portSize = snap * 0.15;
     const isSelected = selection.gateId === gate.id;
 
+    const hasDiagram = gate.type === 'AND' || gate.type === 'OR' || gate.type === 'XOR' || gate.type === 'NOT' || gate.type === 'BUF';
+
     return (
       <g
         key={gate.id}
         className={clsx('gate', isSelected && 'selected')}
         transform={`translate(${sx}, ${sy})`}
         onMouseDown={(e) => handleGateMouseDown(e, gate)}
+        onClick={(e) => { e.stopPropagation(); setSelection(gate.id); }}
       >
         {gate.type === 'OUTPUT' ? (
           // Render OUTPUT as a bulb
@@ -295,6 +321,125 @@ export default function CircuitCanvas() {
               fill={GATE_COLORS[gate.type]}
               opacity={gate.type === 'INPUT' ? 0.5 : 0.3}
             />
+            {/* Gate diagram shapes */}
+            {gate.type === 'NOT' && (
+              <>
+                <polygon
+                  points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+              </>
+            )}
+            {gate.type === 'BUF' && (
+              <polygon
+                points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                fill="none"
+                stroke="#e0e0e0"
+                strokeWidth={2}
+              />
+            )}
+            {gate.type === 'AND' && (
+              <path
+                d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                fill="none"
+                stroke="#e0e0e0"
+                strokeWidth={2}
+              />
+            )}
+            {gate.type === 'NAND' && (
+              <>
+                <path
+                  d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+              </>
+            )}
+            {gate.type === 'OR' && (
+              <>
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+              </>
+            )}
+            {gate.type === 'NOR' && (
+              <>
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+              </>
+            )}
+            {gate.type === 'XOR' && (
+              <>
+                {/* OR body */}
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                {/* Extra XOR back curve */}
+                <path
+                  d={`M ${-width*0.35} ${-height*0.3} C ${-width*0.3} ${-height*0.1}, ${-width*0.3} ${height*0.1}, ${-width*0.35} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+              </>
+            )}
+            {gate.type === 'XNOR' && (
+              <>
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <path
+                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <path
+                  d={`M ${-width*0.35} ${-height*0.3} C ${-width*0.3} ${-height*0.1}, ${-width*0.3} ${height*0.1}, ${-width*0.35} ${height*0.3}`}
+                  fill="none"
+                  stroke="#e0e0e0"
+                  strokeWidth={2}
+                />
+                <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+              </>
+            )}
             {gate.type === 'INPUT' && (
               <text
                 x={0}
@@ -323,6 +468,7 @@ export default function CircuitCanvas() {
                 if (wireStart) {
                   completeWire(gate.id, port.index);
                   setMousePos(null);
+                  playSnap();
                 }
               }}
             />
@@ -330,22 +476,38 @@ export default function CircuitCanvas() {
         })}
         {gate.outputs.map((port, idx) => {
           const portY = ((idx + 1) / (gate.outputs.length + 1)) * height - height / 2;
-          const isActive = port.value === true;
+          const isActive = gate.type === 'INPUT' ? !!gate.initial : port.value === true;
           return (
             <circle
               key={port.id}
               className={clsx('gate-output', isActive ? 'active' : 'inactive')}
               cx={width / 2 + portSize / 2}
               cy={portY}
-              r={portSize / 2}
+              r={portSize * 0.7}
               onMouseDown={(e) => {
                 e.stopPropagation();
-                const rect = svgRef.current?.getBoundingClientRect();
-                if (rect) {
-                  const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
-                  startWire(gate.id, port.index, wx, wy);
-                  setMousePos({ x: wx, y: wy });
-                }
+                // Use exact port world coordinates to start the wire
+                const portWorldX = gate.x + (width / 2 + portSize / 2);
+                const portWorldY = gate.y + portY;
+                  startWire(gate.id, port.index, portWorldX, portWorldY);
+                setMousePos({ x: portWorldX, y: portWorldY });
+                  playClick();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const portWorldX = gate.x + (width / 2 + portSize / 2);
+                const portWorldY = gate.y + portY;
+                startWire(gate.id, port.index, portWorldX, portWorldY);
+                setMousePos({ x: portWorldX, y: portWorldY });
+                playClick();
+              }}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                const portWorldX = gate.x + (width / 2 + portSize / 2);
+                const portWorldY = gate.y + portY;
+                startWire(gate.id, port.index, portWorldX, portWorldY);
+                setMousePos({ x: portWorldX, y: portWorldY });
+                playClick();
               }}
             />
           );
@@ -354,13 +516,13 @@ export default function CircuitCanvas() {
           <text
             className="gate-label"
             x={0}
-            y={0}
-            dy="0.3em"
+            y={height / 2 + 12}
+            textAnchor="middle"
           >
             {gate.label}
           </text>
         )}
-        {!gate.label && (
+        {!gate.label && !hasDiagram && gate.type !== 'INPUT' && gate.type !== 'OUTPUT' && (
           <text
             className="gate-label"
             x={0}
@@ -465,26 +627,95 @@ export default function CircuitCanvas() {
     );
   };
 
+  const renderFloatingBar = () => {
+    if (!currentLevel) return null;
+    
+    const snap = ui.gridSnap;
+    // Position bar at the very top of the canvas (slightly lower than 0 to keep content visible)
+    const barY = Math.floor(snap * 0.75);
+    const barHeight = snap * 2; // Height of the bar area
+    const padding = snap * 0.5;
+    const minX = padding;
+    const maxX = (currentLevel.grid.cols - 1) * snap + padding;
+    
+    // Get INPUT and OUTPUT gates - show bar if they exist
+    const inputGates = gates.filter(g => g.type === 'INPUT');
+    const outputGates = gates.filter(g => g.type === 'OUTPUT');
+    
+    // Show bar if we have IO gates OR if level has IO gates defined
+    const hasIOGates = (inputGates.length > 0 || outputGates.length > 0) ||
+                       ((currentLevel.inputs?.length || 0) > 0 || (currentLevel.outputs?.length || 0) > 0);
+    
+    if (!hasIOGates) return null;
+    
+    return (
+      <g className="floating-bar">
+        {/* Background */}
+        <rect
+          x={minX}
+          y={barY - barHeight / 2}
+          width={maxX - minX}
+          height={barHeight}
+          fill="#1a1f2e"
+          rx={snap * 0.15}
+        />
+        {/* Top border */}
+        <line
+          x1={minX}
+          y1={barY - barHeight / 2}
+          x2={maxX}
+          y2={barY - barHeight / 2}
+          stroke="#0bd3ff"
+          strokeWidth={2}
+          strokeOpacity={0.5}
+        />
+        {/* Bottom border */}
+        <line
+          x1={minX}
+          y1={barY + barHeight / 2}
+          x2={maxX}
+          y2={barY + barHeight / 2}
+          stroke="#0bd3ff"
+          strokeWidth={2}
+          strokeOpacity={0.3}
+        />
+        {/* Divider line between inputs and outputs */}
+        <line
+          x1={(minX + maxX) / 2}
+          y1={barY - barHeight / 2}
+          x2={(minX + maxX) / 2}
+          y2={barY + barHeight / 2}
+          stroke="#0bd3ff"
+          strokeWidth={1}
+          strokeDasharray="4,4"
+          strokeOpacity={0.2}
+        />
+      </g>
+    );
+  };
+
   if (!currentLevel) return null;
 
   // Calculate bounds for viewBox to show all gates with padding
   const allGates = gates.length > 0 ? gates : [...(currentLevel.inputs || []), ...(currentLevel.outputs || [])];
-  let minX = currentLevel.grid.snap;
-  let maxX = (currentLevel.grid.cols - 1) * currentLevel.grid.snap;
-  let minY = currentLevel.grid.snap;
-  let maxY = (currentLevel.grid.rows - 1) * currentLevel.grid.snap;
+  const snap = currentLevel.grid.snap;
+  let minX = snap;
+  let maxX = (currentLevel.grid.cols - 1) * snap;
+  let minY = 0; // Anchor viewBox to the top so the bar sits at the top
+  let maxY = (currentLevel.grid.rows - 1) * snap;
   
   if (allGates.length > 0) {
     const xs = allGates.map(g => g.x);
     const ys = allGates.map(g => g.y);
-    minX = Math.min(...xs) - currentLevel.grid.snap * 4;
-    maxX = Math.max(...xs) + currentLevel.grid.snap * 4;
-    minY = Math.min(...ys) - currentLevel.grid.snap * 4;
-    maxY = Math.max(...ys) + currentLevel.grid.snap * 4;
+    minX = Math.min(...xs) - snap * 4;
+    maxX = Math.max(...xs) + snap * 4;
+    // Keep the top anchored at 0 so the bar remains at the top
+    minY = 0;
+    maxY = Math.max(...ys) + snap * 4;
   }
   
-  const viewBoxWidth = Math.max(maxX - minX, currentLevel.grid.cols * currentLevel.grid.snap);
-  const viewBoxHeight = Math.max(maxY - minY, currentLevel.grid.rows * currentLevel.grid.snap);
+  const viewBoxWidth = Math.max(maxX - minX, currentLevel.grid.cols * snap);
+  const viewBoxHeight = Math.max(maxY - minY, (currentLevel.grid.rows + 1) * snap); // Extra space for bar
 
   return (
     <div ref={containerRef} className="circuit-canvas-container">
@@ -492,7 +723,7 @@ export default function CircuitCanvas() {
         ref={svgRef}
         className="circuit-canvas grid-bg"
         viewBox={`${minX} ${minY} ${viewBoxWidth} ${viewBoxHeight}`}
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMin meet"
         onClick={handleCanvasClick}
         onMouseMove={(e) => {
           const rect = svgRef.current?.getBoundingClientRect();
@@ -517,6 +748,7 @@ export default function CircuitCanvas() {
             </feMerge>
           </filter>
         </defs>
+        {renderFloatingBar()}
         {wires.map(renderWire)}
         {renderRubberBand()}
         {renderGhostGate()}

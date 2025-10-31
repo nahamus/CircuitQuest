@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
+import { fetchLevelIndex } from '../services/levels';
 import TopBar from '../components/TopBar';
 import PalettePanel from '../components/PalettePanel';
 import CircuitCanvas from '../components/CircuitCanvas';
@@ -14,6 +15,7 @@ export default function Play() {
   const navigate = useNavigate();
   const { loadLevel, sim, currentLevel } = useStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [levelIds, setLevelIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
@@ -24,14 +26,34 @@ export default function Play() {
     }
   }, [id, loadLevel, navigate]);
 
+  // Load level index for progression
   useEffect(() => {
-    if (sim.last) {
-      setToast({
-        message: sim.last.message || (sim.last.success ? 'Success!' : 'Failed'),
-        type: sim.last.success ? 'success' : 'error',
-      });
+    fetchLevelIndex()
+      .then(ids => setLevelIds(ids.map(s => s.replace(/\.json$/, ''))))
+      .catch(err => console.error('Failed to fetch level index', err));
+  }, []);
+
+  useEffect(() => {
+    if (!sim.last) return;
+
+    setToast({
+      message: sim.last.message || (sim.last.success ? 'Success!' : 'Failed'),
+      type: sim.last.success ? 'success' : 'error',
+    });
+
+    // Auto-advance on success to the next level if available
+    if (sim.last.success && currentLevel) {
+      const idx = levelIds.indexOf(currentLevel.id);
+      const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
+      if (nextId) {
+        const t = setTimeout(() => navigate(`/play/${nextId}`), 1200);
+        return () => clearTimeout(t);
+      } else if (levelIds.length > 0) {
+        // No more levels
+        setToast({ message: 'All challenges complete! 🎉', type: 'success' });
+      }
     }
-  }, [sim.last]);
+  }, [sim.last, currentLevel?.id, levelIds, navigate]);
 
   if (!currentLevel) {
     return <div className="loading">Loading level...</div>;

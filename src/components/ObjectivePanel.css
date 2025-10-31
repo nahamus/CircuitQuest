@@ -5,17 +5,13 @@
 }
 
 .objective-panel h3 {
-  font-size: 16px;
-  margin-bottom: 12px;
+  font-size: 14px;
+  margin-bottom: 8px;
   color: #e0e0e0;
+  letter-spacing: 0.4px;
 }
 
-.objective-description {
-  font-size: 13px;
-  color: #aaa;
-  margin-bottom: 16px;
-  line-height: 1.4;
-}
+.objective-description { display: none; }
 
 .objective-panel h4 {
   font-size: 14px;
@@ -24,33 +20,20 @@
   margin-bottom: 8px;
 }
 
-.value-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.value-list { display: flex; flex-direction: column; gap: 6px; }
+.value-list.compact { gap: 8px; }
+
+.value-item { display: flex; align-items: center; gap: 8px; }
+.value-item.pill {
+  background: #1a1a24;
+  border: 1px solid #2f2f3a;
+  padding: 8px 10px;
+  border-radius: 8px;
 }
 
-.value-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.value-label { font-size: 12px; color: #cfcfcf; flex: 1; }
 
-.value-label {
-  font-size: 13px;
-  color: #ccc;
-  flex: 1;
-}
-
-.value-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  min-width: 24px;
-  text-align: center;
-}
+.value-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 700; min-width: 20px; text-align: center; }
 
 .value-true {
   background: #00ff88;
@@ -86,9 +69,7 @@
   color: #888;
   font-size: 12px;
 }
+.constraints.subtle { opacity: 0.7; border-top-color: #2a2a2a; }
 
-.inputs-section,
-.outputs-section {
-  margin-bottom: 12px;
-}
+.inputs-section, .outputs-section { margin-bottom: 8px; }
 

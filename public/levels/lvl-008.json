@@ -1,0 +1,18 @@
+{
+  "id": "lvl-008",
+  "title": "XNOR Challenge",
+  "description": "Make outputs equal using XNOR logic.",
+  "grid": { "cols": 32, "rows": 18, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": false, "x": 1, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "out1", "label": "F1",   "target": true,  "x": 30, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "out2", "label": "F2",   "target": true,  "x": 30, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 2, "OR": 0, "NOT": 1, "BUF": 2, "XOR": 0, "SPLIT": 3, "NAND": 0, "NOR": 0, "XNOR": 4, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 9
+}
+
+

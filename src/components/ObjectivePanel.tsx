@@ -23,33 +23,14 @@ export default function ObjectivePanel() {
 
   return (
     <div className="objective-panel panel">
-      <h3>Objective</h3>
-      {currentLevel.description && (
-        <p className="objective-description">{currentLevel.description}</p>
-      )}
-      
-      <div className="inputs-section">
-        <h4>Inputs</h4>
-        <div className="value-list">
-          {currentLevel.inputs.map(input => (
-            <div key={input.id} className="value-item">
-              <span className="value-label">{input.label || input.id}:</span>
-              <span className={`value-badge ${input.initial ? 'value-true' : 'value-false'}`}>
-                {input.initial ? '1' : '0'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
+      <h3>Goal</h3>
       <div className="outputs-section">
-        <h4>Required Outputs</h4>
-        <div className="value-list">
+        <div className="value-list compact">
           {currentLevel.outputs.map(output => {
             const status = statuses?.find(s => s.id === output.id);
             return (
-              <div key={output.id} className="value-item">
-                <span className="value-label">{output.label || output.id}:</span>
+              <div key={output.id} className="value-item pill">
+                <span className="value-label">{output.label || output.id}</span>
                 <span className={`value-badge value-target ${output.target ? 'value-true' : 'value-false'}`}>
                   {output.target ? '1' : '0'}
                 </span>
@@ -65,7 +46,7 @@ export default function ObjectivePanel() {
       </div>
 
       {currentLevel.maxComponents && (
-        <div className="constraints">
+        <div className="constraints subtle">
           <small>Max components: {currentLevel.maxComponents}</small>
         </div>
       )}

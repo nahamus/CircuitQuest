@@ -27,6 +27,8 @@ interface StoreState {
   loadLevel: (id: string) => Promise<void>;
   placeGate: (type: GateType, x: number, y: number) => void;
   moveGate: (gateId: string, x: number, y: number) => void;
+  replaceGateType: (gateId: string, newType: GateType) => void;
+  arrangeIO: () => void;
   startWire: (gateId: string, portIndex: number, x: number, y: number) => void;
   completeWire: (gateId: string, portIndex: number) => void;
   cancelWire: () => void;
@@ -81,10 +83,33 @@ export const useStore = create<StoreState>((set, get) => ({
   loadLevel: async (id: string) => {
     const level = await fetchLevel(id);
     const settings = await loadSettings();
-    
+    // Arrange IO gates onto a top floating bar by default
+    const snap = level.grid.snap;
+    const barY = Math.floor(snap * 0.75); // top bar center, closer to top
+    const horizontalSpacing = snap * 2.5;
+    const leftMargin = snap * 2;
+    const rightMargin = snap * 2;
+    const totalWidth = (level.grid.cols - 1) * snap;
+
+    const arrangedInputs: Gate[] = (level.inputs || []).map((g, index) => ({
+      ...g,
+      x: leftMargin + index * horizontalSpacing,
+      y: barY,
+    }));
+    const arrangedOutputs: Gate[] = (level.outputs || []).map((g, index) => ({
+      ...g,
+      x: totalWidth - rightMargin - ((level.outputs?.length || 1) - 1) * horizontalSpacing + index * horizontalSpacing,
+      y: barY,
+    }));
+    const initialPlaced: Gate[] = [...(level.placed || [])];
+
+    // Persist arranged IO positions into currentLevel
+    level.inputs = arrangedInputs;
+    level.outputs = arrangedOutputs;
+
     set({
       currentLevel: level,
-      gates: [...level.inputs, ...(level.placed || []), ...level.outputs],
+      gates: [...arrangedInputs, ...initialPlaced, ...arrangedOutputs],
       wires: level.wires || [],
       selection: {},
       sim: { running: false },
@@ -121,7 +146,7 @@ export const useStore = create<StoreState>((set, get) => ({
       y,
       inputs: type === 'NOT' || type === 'BUF' || type === 'SPLIT'
         ? [{ id: `${id}:in0`, dir: 'In', index: 0 }]
-        : type === 'AND' || type === 'OR' || type === 'XOR'
+        : type === 'AND' || type === 'OR' || type === 'XOR' || type === 'NAND' || type === 'NOR' || type === 'XNOR'
         ? [
             { id: `${id}:in0`, dir: 'In', index: 0 },
             { id: `${id}:in1`, dir: 'In', index: 1 },
@@ -138,6 +163,83 @@ export const useStore = create<StoreState>((set, get) => ({
     set({
       gates: [...state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT'), gate],
     });
+  },
+  
+  replaceGateType: (gateId: string, newType: GateType) => {
+    const state = get();
+    const original = state.gates.find(g => g.id === gateId);
+    if (!original || original.type === 'INPUT' || original.type === 'OUTPUT') return;
+
+    // Build new ports for the new type
+    const id = original.id;
+    const buildInputs = (): Port[] => {
+      if (newType === 'NOT' || newType === 'BUF' || newType === 'SPLIT') {
+        return [{ id: `${id}:in0`, dir: 'In', index: 0 }];
+      }
+      if (newType === 'AND' || newType === 'OR' || newType === 'XOR' || newType === 'NAND' || newType === 'NOR' || newType === 'XNOR') {
+        return [
+          { id: `${id}:in0`, dir: 'In', index: 0 },
+          { id: `${id}:in1`, dir: 'In', index: 1 },
+        ];
+      }
+      return [];
+    };
+    const buildOutputs = (): Port[] => {
+      if (newType === 'SPLIT') {
+        return [
+          { id: `${id}:out0`, dir: 'Out', index: 0 },
+          { id: `${id}:out1`, dir: 'Out', index: 1 },
+        ];
+      }
+      return [{ id: `${id}:out0`, dir: 'Out', index: 0 }];
+    };
+
+    const newGate: Gate = {
+      ...original,
+      type: newType,
+      inputs: buildInputs(),
+      outputs: buildOutputs(),
+    };
+
+    // Update wires: remove connections that reference non-existent ports on the replaced gate
+    const maxIn = newGate.inputs.length;
+    const maxOut = newGate.outputs.length;
+    const filteredWires = state.wires.filter(w => {
+      if (w.fromGateId === gateId && w.fromPortIndex >= maxOut) return false;
+      if (w.toGateId === gateId && w.toPortIndex >= maxIn) return false;
+      return true;
+    });
+
+    set({
+      gates: state.gates.map(g => (g.id === gateId ? newGate : g)),
+      wires: filteredWires,
+      selection: { gateId },
+    });
+  },
+
+  arrangeIO: () => {
+    const state = get();
+    const level = state.currentLevel;
+    if (!level) return;
+    const snap = state.ui.gridSnap;
+    const barY = Math.floor(snap * 0.75);
+    const horizontalSpacing = snap * 2.5;
+    const leftMargin = snap * 2;
+    const rightMargin = snap * 2;
+    const totalWidth = (level.grid.cols - 1) * snap;
+
+    const inputs = state.gates.filter(g => g.type === 'INPUT');
+    const outputs = state.gates.filter(g => g.type === 'OUTPUT');
+    const others = state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT');
+
+    const arrangedInputs = inputs.map((g, i) => ({ ...g, x: leftMargin + i * horizontalSpacing, y: barY }));
+    const arrangedOutputs = outputs.map((g, i) => ({
+      ...g,
+      x: totalWidth - rightMargin - (outputs.length - 1) * horizontalSpacing + i * horizontalSpacing,
+      y: barY,
+    }));
+
+    set({ gates: [...arrangedInputs, ...others, ...arrangedOutputs] });
   },
   
   moveGate: (gateId: string, x: number, y: number) => {
@@ -274,8 +376,15 @@ export const useStore = create<StoreState>((set, get) => ({
     const state = get();
     if (state.selection.gateId) {
       const gateId = state.selection.gateId;
+      const gate = state.gates.find(g => g.id === gateId);
+      // Do not delete INPUT/OUTPUT; instead re-arrange them back to bar and clear selection
+      if (gate && (gate.type === 'INPUT' || gate.type === 'OUTPUT')) {
+        get().arrangeIO();
+        set({ selection: {} });
+        return;
+      }
       set({
-        gates: state.gates.filter(g => g.id !== gateId && (g.type === 'INPUT' || g.type === 'OUTPUT')),
+        gates: state.gates.filter(g => g.id !== gateId),
         wires: state.wires.filter(w => w.fromGateId !== gateId && w.toGateId !== gateId),
         selection: {}
       });
@@ -338,9 +447,26 @@ export const useStore = create<StoreState>((set, get) => ({
   resetLevel: () => {
     const state = get();
     if (!state.currentLevel) return;
+    const level = state.currentLevel;
+    const snap = level.grid.snap;
+    const barY = Math.floor(snap * 0.75); // top bar center, closer to top
+    const horizontalSpacing = snap * 2.5;
+    const leftMargin = snap * 2;
+    const rightMargin = snap * 2;
+    const totalWidth = (level.grid.cols - 1) * snap;
+    const arrangedInputs: Gate[] = (level.inputs || []).map((g, index) => ({
+      ...g,
+      x: leftMargin + index * horizontalSpacing,
+      y: barY,
+    }));
+    const arrangedOutputs: Gate[] = (level.outputs || []).map((g, index) => ({
+      ...g,
+      x: totalWidth - rightMargin - ((level.outputs?.length || 1) - 1) * horizontalSpacing + index * horizontalSpacing,
+      y: barY,
+    }));
     
     set({
-      gates: [...state.currentLevel.inputs, ...state.currentLevel.outputs],
+      gates: [...arrangedInputs, ...arrangedOutputs],
       wires: [],
       selection: {},
       sim: { running: false },

@@ -1,0 +1,18 @@
+{
+  "id": "lvl-007",
+  "title": "NOR Only",
+  "description": "Achieve targets using only NOR gates.",
+  "grid": { "cols": 30, "rows": 18, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": false,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": true,   "x": 1, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "out1", "label": "F1",   "target": false,  "x": 28, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "out2", "label": "F2",   "target": true,   "x": 28, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 0, "OR": 0, "NOT": 0, "BUF": 2, "XOR": 0, "SPLIT": 3, "NAND": 0, "NOR": 6, "XNOR": 0, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 9
+}
+
+

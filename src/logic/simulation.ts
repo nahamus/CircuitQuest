@@ -81,15 +81,31 @@ export function runSimulation(level: Level): SimResult {
         g.outputs[0].value = getIn(g,0) && getIn(g,1);
         break;
       }
+      case 'NAND': {
+        if (!g.outputs.length) g.outputs.push({ id:`${g.id}:out0`, dir:'Out', index:0 });
+        g.outputs[0].value = !(getIn(g,0) && getIn(g,1));
+        break;
+      }
       case 'OR': {
         if (!g.outputs.length) g.outputs.push({ id:`${g.id}:out0`, dir:'Out', index:0 });
         g.outputs[0].value = getIn(g,0) || getIn(g,1);
+        break;
+      }
+      case 'NOR': {
+        if (!g.outputs.length) g.outputs.push({ id:`${g.id}:out0`, dir:'Out', index:0 });
+        g.outputs[0].value = !(getIn(g,0) || getIn(g,1));
         break;
       }
       case 'XOR': {
         if (!g.outputs.length) g.outputs.push({ id:`${g.id}:out0`, dir:'Out', index:0 });
         const a = getIn(g,0), b = getIn(g,1);
         g.outputs[0].value = (a ? !b : b);
+        break;
+      }
+      case 'XNOR': {
+        if (!g.outputs.length) g.outputs.push({ id:`${g.id}:out0`, dir:'Out', index:0 });
+        const a = getIn(g,0), b = getIn(g,1);
+        g.outputs[0].value = !(a ? !b : b);
         break;
       }
     }

@@ -1,0 +1,18 @@
+{
+  "id": "lvl-006",
+  "title": "NAND Builder",
+  "description": "Use only NAND to produce F1=1 and F2=0.",
+  "grid": { "cols": 30, "rows": 18, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": true,  "x": 1, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "out1", "label": "F1",   "target": true,  "x": 28, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "out2", "label": "F2",   "target": false, "x": 28, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 0, "OR": 0, "NOT": 0, "BUF": 0, "XOR": 0, "SPLIT": 3, "NAND": 6, "NOR": 0, "XNOR": 0, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 8
+}
+
+
