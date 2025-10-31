@@ -1,0 +1,232 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #101116;
+  color: #e0e0e0;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Grid background */
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(100, 100, 100, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100, 100, 100, 0.1) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Wires */
+.wire {
+  stroke: #666;
+  stroke-width: 2;
+  fill: none;
+  pointer-events: stroke;
+}
+
+.wire.active {
+  stroke: #0bd3ff;
+  filter: drop-shadow(0 0 4px #0bd3ff);
+  stroke-width: 2.5;
+}
+
+.wire.selected {
+  stroke: #ffd700;
+  stroke-width: 3;
+}
+
+/* Gates */
+.gate {
+  cursor: move;
+}
+
+.gate.selected {
+  filter: drop-shadow(0 0 8px #ffd700);
+}
+
+.gate-body {
+  fill: #1a1a24;
+  stroke: #444;
+  stroke-width: 2;
+}
+
+.gate-body.selected {
+  stroke: #ffd700;
+  stroke-width: 3;
+}
+
+.gate-input {
+  fill: #333;
+  stroke: #666;
+}
+
+.gate-output {
+  fill: #333;
+  stroke: #666;
+}
+
+.gate-input.active {
+  fill: #0bd3ff;
+  stroke: #0bd3ff;
+  filter: drop-shadow(0 0 4px #0bd3ff);
+}
+
+.gate-output.active {
+  fill: #0bd3ff;
+  stroke: #0bd3ff;
+  filter: drop-shadow(0 0 4px #0bd3ff);
+}
+
+.gate-input.inactive {
+  fill: #333;
+  stroke: #666;
+}
+
+.gate-output.inactive {
+  fill: #333;
+  stroke: #666;
+}
+
+.bulb-body {
+  fill: #1a1a24;
+  stroke: #444;
+  stroke-width: 2;
+}
+
+.bulb-body.selected {
+  stroke: #ffd700;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px #ffd700);
+}
+
+.gate-label {
+  fill: #e0e0e0;
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* Buttons */
+button {
+  background: #2a2a3a;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #3a3a4a;
+  border-color: #555;
+}
+
+button:active {
+  background: #1a1a2a;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: #0bd3ff;
+  border-color: #0bd3ff;
+  color: #101116;
+}
+
+button.primary:hover {
+  background: #00c4e6;
+}
+
+button.success {
+  background: #00ff88;
+  border-color: #00ff88;
+  color: #101116;
+}
+
+button.danger {
+  background: #ff4444;
+  border-color: #ff4444;
+}
+
+/* Panels */
+.panel {
+  background: #1a1a24;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2a2a3a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 16px 24px;
+  min-width: 300px;
+  text-align: center;
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+}
+
+.toast.success {
+  border-color: #00ff88;
+  background: #1a3a2a;
+}
+
+.toast.error {
+  border-color: #ff4444;
+  background: #3a1a1a;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a24;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+

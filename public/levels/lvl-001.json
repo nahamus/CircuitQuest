@@ -1,0 +1,18 @@
+{
+  "id": "lvl-001",
+  "title": "Hello, Logic",
+  "description": "Light both outputs using few gates.",
+  "grid": { "cols": 24, "rows": 14, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 4,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": false, "x": 1, "y": 10, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "out1", "label": "F1", "target": true,  "x": 22, "y": 5, "inputs": [], "outputs": [] },
+    { "id": "out2", "label": "F2", "target": false, "x": 22, "y": 9, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 3, "OR": 2, "NOT": 2, "BUF": 5, "XOR": 2, "SPLIT": 3, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 8
+}
+
+

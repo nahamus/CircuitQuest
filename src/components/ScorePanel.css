@@ -1,0 +1,44 @@
+.score-panel {
+  width: 200px;
+}
+
+.score-panel h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #e0e0e0;
+}
+
+.score-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #888;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0bd3ff;
+}
+
+.stat-current {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #333;
+}
+
+.stat-current .stat-value {
+  font-size: 14px;
+  color: #aaa;
+}
+

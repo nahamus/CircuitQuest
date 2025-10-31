@@ -1,0 +1,128 @@
+.home {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #101116;
+}
+
+.home-content {
+  max-width: 700px;
+  padding: 40px;
+  text-align: center;
+}
+
+.home h1 {
+  font-size: 48px;
+  font-weight: 700;
+  color: #0bd3ff;
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: #888;
+  margin-bottom: 40px;
+}
+
+.level-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.level-item {
+  padding: 20px;
+  background: #1a1a24;
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.level-item:hover {
+  background: #2a2a3a;
+  border-color: #555;
+  transform: translateX(4px);
+}
+
+.level-item-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.level-item-badge {
+  font-size: 14px;
+  color: #ffd700;
+}
+
+.instructions-toggle {
+  margin: 20px 0;
+  padding: 10px 20px;
+  background: #2a2a3a;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.instructions-toggle:hover {
+  background: #3a3a4a;
+  border-color: #555;
+}
+
+.instructions {
+  margin: 20px 0;
+  padding: 24px;
+  background: #1a1a24;
+  border: 1px solid #333;
+  border-radius: 8px;
+  text-align: left;
+  max-width: 100%;
+}
+
+.instructions h3 {
+  color: #0bd3ff;
+  font-size: 24px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.instructions h4 {
+  color: #e0e0e0;
+  font-size: 18px;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.instructions-content {
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.instructions-content p {
+  margin-bottom: 16px;
+}
+
+.instructions-content ul {
+  margin-left: 20px;
+  margin-bottom: 16px;
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.instructions-content li {
+  margin-bottom: 8px;
+}
+
+.instructions-content strong {
+  color: #0bd3ff;
+}
+

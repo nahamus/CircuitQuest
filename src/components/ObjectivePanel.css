@@ -1,0 +1,94 @@
+.objective-panel {
+  width: 200px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.objective-panel h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #e0e0e0;
+}
+
+.objective-description {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.objective-panel h4 {
+  font-size: 14px;
+  color: #0bd3ff;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.value-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.value-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.value-label {
+  font-size: 13px;
+  color: #ccc;
+  flex: 1;
+}
+
+.value-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
+.value-true {
+  background: #00ff88;
+  color: #000;
+}
+
+.value-false {
+  background: #666;
+  color: #fff;
+}
+
+.value-target {
+  border: 2px solid #0bd3ff;
+}
+
+.check-status {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.check-correct {
+  color: #00ff88;
+}
+
+.check-incorrect {
+  color: #ff4444;
+}
+
+.constraints {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #333;
+  color: #888;
+  font-size: 12px;
+}
+
+.inputs-section,
+.outputs-section {
+  margin-bottom: 12px;
+}
+

@@ -1,0 +1,16 @@
+{
+  "name": "Circuit Quest",
+  "short_name": "CircuitQuest",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#101116",
+  "theme_color": "#0bd3ff",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

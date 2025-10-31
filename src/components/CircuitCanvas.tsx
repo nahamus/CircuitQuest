@@ -1,0 +1,528 @@
+import { useRef, useEffect, useState, useCallback } from 'react';
+import { useStore } from '../state/useStore';
+import type { Gate, Wire, GateType } from '../models/types';
+import clsx from 'clsx';
+import './CircuitCanvas.css';
+
+const GATE_COLORS: Record<GateType, string> = {
+  INPUT: '#00ff88',
+  OUTPUT: '#ff4444',
+  AND: '#0bd3ff',
+  OR: '#ff8800',
+  XOR: '#ff00ff',
+  NOT: '#ffff00',
+  BUF: '#8888ff',
+  SPLIT: '#88ff88',
+};
+
+const GATE_LABELS: Record<GateType, string> = {
+  INPUT: 'I',
+  OUTPUT: 'O',
+  AND: '&',
+  OR: '≥1',
+  XOR: '=1',
+  NOT: '1',
+  BUF: '1',
+  SPLIT: 'T',
+};
+
+export default function CircuitCanvas() {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState<{ gateId: string; startX: number; startY: number; offsetX: number; offsetY: number } | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  
+  const {
+    gates,
+    wires,
+    ui,
+    selection,
+    wireStart,
+    armedGateType,
+    setSelection,
+    placeGate,
+    moveGate,
+    startWire,
+    completeWire,
+    setZoom,
+    setOffset,
+    setArmedGateType,
+    fitToView,
+    currentLevel,
+  } = useStore();
+
+  // Auto-fit view when level loads
+  useEffect(() => {
+    if (currentLevel && gates.length > 0) {
+      // Small delay to ensure canvas is mounted
+      const timer = setTimeout(() => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          fitToView();
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [currentLevel?.id, fitToView]);
+
+  const snapToGrid = useCallback((x: number, y: number): [number, number] => {
+    const snap = ui.gridSnap;
+    return [Math.round(x / snap) * snap, Math.round(y / snap) * snap];
+  }, [ui.gridSnap]);
+
+  const worldToScreen = useCallback((x: number, y: number): [number, number] => {
+    const svg = svgRef.current;
+    if (!svg) return [x, y];
+    const viewBox = svg.viewBox.baseVal;
+    const svgWidth = svg.clientWidth || 800;
+    const svgHeight = svg.clientHeight || 600;
+    const scaleX = svgWidth / viewBox.width;
+    const scaleY = svgHeight / viewBox.height;
+    return [
+      (x - viewBox.x) * scaleX,
+      (y - viewBox.y) * scaleY,
+    ];
+  }, []);
+
+  const screenToWorld = useCallback((x: number, y: number): [number, number] => {
+    const svg = svgRef.current;
+    if (!svg) return [x, y];
+    const viewBox = svg.viewBox.baseVal;
+    const rect = svg.getBoundingClientRect();
+    const svgWidth = rect.width;
+    const svgHeight = rect.height;
+    
+    // Account for preserveAspectRatio="xMidYMid meet"
+    const viewBoxAspect = viewBox.width / viewBox.height;
+    const svgAspect = svgWidth / svgHeight;
+    
+    let scale: number;
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    if (viewBoxAspect > svgAspect) {
+      // ViewBox is wider - letterboxing (bars top/bottom)
+      scale = svgWidth / viewBox.width;
+      const scaledHeight = viewBox.height * scale;
+      offsetY = (svgHeight - scaledHeight) / 2;
+    } else {
+      // ViewBox is taller - pillarboxing (bars left/right)
+      scale = svgHeight / viewBox.height;
+      const scaledWidth = viewBox.width * scale;
+      offsetX = (svgWidth - scaledWidth) / 2;
+    }
+    
+    // Convert screen coordinates, accounting for letterboxing/pillarboxing
+    const worldX = ((x - offsetX) / scale) + viewBox.x;
+    const worldY = ((y - offsetY) / scale) + viewBox.y;
+    
+    return [worldX, worldY];
+  }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) {
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        setZoom(ui.zoom * delta);
+      } else {
+        setOffset(ui.offsetX - e.deltaX / ui.zoom, ui.offsetY - e.deltaY / ui.zoom);
+      }
+    };
+
+    let panning = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button === 2) {
+        panning = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        e.preventDefault();
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (panning) {
+        const dx = (e.clientX - lastX) / ui.zoom;
+        const dy = (e.clientY - lastY) / ui.zoom;
+        setOffset(ui.offsetX + dx, ui.offsetY + dy);
+        lastX = e.clientX;
+        lastY = e.clientY;
+      }
+    };
+
+    const handleMouseUp = () => {
+      panning = false;
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('mousedown', handleMouseDown);
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseup', handleMouseUp);
+    container.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('mousedown', handleMouseDown);
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseup', handleMouseUp);
+      container.removeEventListener('contextmenu', (e) => e.preventDefault());
+    };
+  }, [ui.zoom, ui.offsetX, ui.offsetY, setZoom, setOffset]);
+
+  const handleCanvasClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (e.button !== 0) return;
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    const [sx, sy] = snapToGrid(wx, wy);
+
+    if (armedGateType) {
+      placeGate(armedGateType, sx, sy);
+      setArmedGateType(null);
+    } else {
+      setSelection();
+    }
+  }, [armedGateType, screenToWorld, snapToGrid, placeGate, setSelection]);
+
+  const handleGateMouseDown = useCallback((e: React.MouseEvent, gate: Gate) => {
+    e.stopPropagation();
+    if (e.button === 0) {
+      const rect = svgRef.current?.getBoundingClientRect();
+      if (rect) {
+        const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+        // Store the offset from the gate center to where the mouse clicked
+        const offsetX = wx - gate.x;
+        const offsetY = wy - gate.y;
+        setSelection(gate.id);
+        setDragging({ 
+          gateId: gate.id, 
+          startX: e.clientX, 
+          startY: e.clientY,
+          offsetX,
+          offsetY
+        });
+      }
+    }
+  }, [setSelection, screenToWorld]);
+
+  useEffect(() => {
+    if (!dragging) return;
+
+    const handleMove = (e: MouseEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect || !dragging) return;
+      const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+      // Use the raw world coordinates minus the offset to maintain relative position
+      moveGate(dragging.gateId, wx - dragging.offsetX, wy - dragging.offsetY);
+    };
+
+    const handleUp = () => {
+      setDragging(null);
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [dragging, screenToWorld, snapToGrid, moveGate]);
+
+  const renderGate = (gate: Gate) => {
+    // Use gate coordinates directly since viewBox handles scaling
+    const sx = gate.x;
+    const sy = gate.y;
+    const snap = ui.gridSnap;
+    const width = snap * 0.8;
+    const height = snap * 0.8;
+    const portSize = snap * 0.15;
+    const isSelected = selection.gateId === gate.id;
+
+    return (
+      <g
+        key={gate.id}
+        className={clsx('gate', isSelected && 'selected')}
+        transform={`translate(${sx}, ${sy})`}
+        onMouseDown={(e) => handleGateMouseDown(e, gate)}
+      >
+        {gate.type === 'OUTPUT' ? (
+          // Render OUTPUT as a bulb
+          <>
+            <circle
+              className={clsx('bulb-body', isSelected && 'selected')}
+              cx={0}
+              cy={0}
+              r={width / 2}
+              fill={GATE_COLORS[gate.type]}
+              opacity={0.6}
+            />
+            {/* Bulb filament - shows if target is met */}
+            {gates.find(g => g.id === gate.id)?.inputs[0]?.value === gate.target && (
+              <path
+                d={`M ${-width * 0.15} ${-height * 0.15} L ${width * 0.15} ${height * 0.15} M ${-width * 0.15} ${height * 0.15} L ${width * 0.15} ${-height * 0.15}`}
+                stroke="#ffd700"
+                strokeWidth={2}
+                strokeLinecap="round"
+                opacity={0.8}
+              />
+            )}
+            {/* Target value label */}
+            <text
+              x={0}
+              y={-height / 2 - 8}
+              className="gate-value-label"
+              textAnchor="middle"
+              fontSize={`${snap * 0.12}px`}
+            >
+              →{gate.target ? '1' : '0'}
+            </text>
+          </>
+        ) : (
+          <>
+            <rect
+              className={clsx('gate-body', isSelected && 'selected')}
+              x={-width / 2}
+              y={-height / 2}
+              width={width}
+              height={height}
+              fill={GATE_COLORS[gate.type]}
+              opacity={gate.type === 'INPUT' ? 0.5 : 0.3}
+            />
+            {gate.type === 'INPUT' && (
+              <text
+                x={0}
+                y={-height / 2 - 8}
+                className="gate-value-label"
+                textAnchor="middle"
+                fontSize={`${snap * 0.12}px`}
+              >
+                {gate.initial ? '1' : '0'}
+              </text>
+            )}
+          </>
+        )}
+        {gate.inputs.map((port, idx) => {
+          const portY = ((idx + 1) / (gate.inputs.length + 1)) * height - height / 2;
+          const isActive = port.value === true;
+          return (
+            <circle
+              key={port.id}
+              className={clsx('gate-input', isActive ? 'active' : 'inactive')}
+              cx={-width / 2 - portSize / 2}
+              cy={portY}
+              r={portSize / 2}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                if (wireStart) {
+                  completeWire(gate.id, port.index);
+                  setMousePos(null);
+                }
+              }}
+            />
+          );
+        })}
+        {gate.outputs.map((port, idx) => {
+          const portY = ((idx + 1) / (gate.outputs.length + 1)) * height - height / 2;
+          const isActive = port.value === true;
+          return (
+            <circle
+              key={port.id}
+              className={clsx('gate-output', isActive ? 'active' : 'inactive')}
+              cx={width / 2 + portSize / 2}
+              cy={portY}
+              r={portSize / 2}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                const rect = svgRef.current?.getBoundingClientRect();
+                if (rect) {
+                  const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+                  startWire(gate.id, port.index, wx, wy);
+                  setMousePos({ x: wx, y: wy });
+                }
+              }}
+            />
+          );
+        })}
+        {gate.label && (
+          <text
+            className="gate-label"
+            x={0}
+            y={0}
+            dy="0.3em"
+          >
+            {gate.label}
+          </text>
+        )}
+        {!gate.label && (
+          <text
+            className="gate-label"
+            x={0}
+            y={0}
+            dy="0.3em"
+          >
+            {GATE_LABELS[gate.type]}
+          </text>
+        )}
+      </g>
+    );
+  };
+
+  const renderWire = (wire: Wire) => {
+    const isSelected = selection.wireId === wire.id;
+    const isActive = wires.some(w => w.id === wire.id && 
+      gates.find(g => g.id === w.fromGateId)?.outputs[w.fromPortIndex]?.value === true);
+
+    // Check if wire has valid path
+    if (!wire.path || wire.path.length < 2) {
+      return null;
+    }
+
+    // Use path coordinates directly - ensure proper format for SVG path
+    const pathStr = wire.path.map((p, idx) => {
+      return `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
+    }).join(' ');
+
+    return (
+      <path
+        key={wire.id}
+        className={clsx('wire', isActive && 'active', isSelected && 'selected')}
+        d={pathStr}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelection(undefined, wire.id);
+        }}
+      />
+    );
+  };
+
+  const renderRubberBand = () => {
+    if (!wireStart || !mousePos) return null;
+    
+    // Create a Manhattan path from wireStart to mouse position for preview
+    const x1 = wireStart.x;
+    const y1 = wireStart.y;
+    const x2 = mousePos.x;
+    const y2 = mousePos.y;
+    
+    // Simple Manhattan routing preview
+    const midX = x2;
+    const midY = y1;
+    
+    const pathStr = `M ${x1} ${y1} L ${midX} ${midY} L ${x2} ${y2}`;
+
+    return (
+      <path
+        className="wire"
+        d={pathStr}
+        strokeDasharray="5,5"
+        opacity={0.7}
+        strokeWidth={2}
+      />
+    );
+  };
+
+  const renderGhostGate = () => {
+    if (!armedGateType || !mousePos || !currentLevel) return null;
+    // Snap to grid for ghost gate placement
+    const [sx, sy] = snapToGrid(mousePos.x, mousePos.y);
+    const snap = ui.gridSnap;
+    const width = snap * 0.8;
+    const height = snap * 0.8;
+    
+    return (
+      <g
+        className="ghost-gate"
+        transform={`translate(${sx}, ${sy})`}
+        opacity={0.5}
+      >
+        <rect
+          x={-width / 2}
+          y={-height / 2}
+          width={width}
+          height={height}
+          fill={GATE_COLORS[armedGateType]}
+          stroke={GATE_COLORS[armedGateType]}
+          strokeWidth={2}
+          strokeDasharray="4,4"
+        />
+        <text
+          className="gate-label"
+          x={0}
+          y={0}
+          dy="0.3em"
+          fill={GATE_COLORS[armedGateType]}
+        >
+          {GATE_LABELS[armedGateType]}
+        </text>
+      </g>
+    );
+  };
+
+  if (!currentLevel) return null;
+
+  // Calculate bounds for viewBox to show all gates with padding
+  const allGates = gates.length > 0 ? gates : [...(currentLevel.inputs || []), ...(currentLevel.outputs || [])];
+  let minX = currentLevel.grid.snap;
+  let maxX = (currentLevel.grid.cols - 1) * currentLevel.grid.snap;
+  let minY = currentLevel.grid.snap;
+  let maxY = (currentLevel.grid.rows - 1) * currentLevel.grid.snap;
+  
+  if (allGates.length > 0) {
+    const xs = allGates.map(g => g.x);
+    const ys = allGates.map(g => g.y);
+    minX = Math.min(...xs) - currentLevel.grid.snap * 4;
+    maxX = Math.max(...xs) + currentLevel.grid.snap * 4;
+    minY = Math.min(...ys) - currentLevel.grid.snap * 4;
+    maxY = Math.max(...ys) + currentLevel.grid.snap * 4;
+  }
+  
+  const viewBoxWidth = Math.max(maxX - minX, currentLevel.grid.cols * currentLevel.grid.snap);
+  const viewBoxHeight = Math.max(maxY - minY, currentLevel.grid.rows * currentLevel.grid.snap);
+
+  return (
+    <div ref={containerRef} className="circuit-canvas-container">
+      <svg
+        ref={svgRef}
+        className="circuit-canvas grid-bg"
+        viewBox={`${minX} ${minY} ${viewBoxWidth} ${viewBoxHeight}`}
+        preserveAspectRatio="xMidYMid meet"
+        onClick={handleCanvasClick}
+        onMouseMove={(e) => {
+          const rect = svgRef.current?.getBoundingClientRect();
+          if (rect) {
+            const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+            // For wire drawing, use unsnapped coordinates for smooth following
+            // For ghost gate placement, we'll snap in renderGhostGate if needed
+            setMousePos({ x: wx, y: wy });
+          }
+        }}
+        onMouseLeave={() => {
+          // Keep mousePos if we're placing a gate or wiring
+          if (!wireStart && !armedGateType) setMousePos(null);
+        }}
+      >
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        {wires.map(renderWire)}
+        {renderRubberBand()}
+        {renderGhostGate()}
+        {gates.map(renderGate)}
+      </svg>
+    </div>
+  );
+}
+
