@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Level, Gate, Wire, GateType, SimResult } from '../models/types';
+import type { Level, Gate, Wire, GateType, SimResult, Port } from '../models/types';
 import { runSimulation } from '../logic/simulation';
 import { saveProgress, loadProgress, saveAutosave, loadAutosave, loadSettings, saveSettings } from '../services/storage';
 import type { Settings } from '../services/storage';
@@ -22,6 +22,8 @@ interface StoreState {
   };
   wireStart?: { gateId: string; portIndex: number; x: number; y: number };
   armedGateType?: GateType | null;
+  armedIOId?: string | null;
+  dockedIO: string[];
   
   // Actions
   loadLevel: (id: string) => Promise<void>;
@@ -29,6 +31,9 @@ interface StoreState {
   moveGate: (gateId: string, x: number, y: number) => void;
   replaceGateType: (gateId: string, newType: GateType) => void;
   arrangeIO: () => void;
+  setArmedIO: (gateId: string | null) => void;
+  placeIO: (gateId: string, x: number, y: number) => void;
+  returnIO: (gateId: string) => void;
   startWire: (gateId: string, portIndex: number, x: number, y: number) => void;
   completeWire: (gateId: string, portIndex: number) => void;
   cancelWire: () => void;
@@ -79,37 +84,21 @@ export const useStore = create<StoreState>((set, get) => ({
     theme: 'dark',
     showHints: false,
   },
+  armedIOId: null,
+  dockedIO: [],
   
   loadLevel: async (id: string) => {
     const level = await fetchLevel(id);
     const settings = await loadSettings();
-    // Arrange IO gates onto a top floating bar by default
-    const snap = level.grid.snap;
-    const barY = Math.floor(snap * 0.75); // top bar center, closer to top
-    const horizontalSpacing = snap * 2.5;
-    const leftMargin = snap * 2;
-    const rightMargin = snap * 2;
-    const totalWidth = (level.grid.cols - 1) * snap;
-
-    const arrangedInputs: Gate[] = (level.inputs || []).map((g, index) => ({
-      ...g,
-      x: leftMargin + index * horizontalSpacing,
-      y: barY,
-    }));
-    const arrangedOutputs: Gate[] = (level.outputs || []).map((g, index) => ({
-      ...g,
-      x: totalWidth - rightMargin - ((level.outputs?.length || 1) - 1) * horizontalSpacing + index * horizontalSpacing,
-      y: barY,
-    }));
     const initialPlaced: Gate[] = [...(level.placed || [])];
 
-    // Persist arranged IO positions into currentLevel
-    level.inputs = arrangedInputs;
-    level.outputs = arrangedOutputs;
+    // Normalize IO types for consistency
+    level.inputs = (level.inputs||[]).map(g => ({ ...g, type: 'INPUT' as GateType }));
+    level.outputs = (level.outputs||[]).map(g => ({ ...g, type: 'OUTPUT' as GateType }));
 
     set({
       currentLevel: level,
-      gates: [...arrangedInputs, ...initialPlaced, ...arrangedOutputs],
+      gates: [...initialPlaced],
       wires: level.wires || [],
       selection: {},
       sim: { running: false },
@@ -123,6 +112,8 @@ export const useStore = create<StoreState>((set, get) => ({
       },
       wireStart: undefined,
       armedGateType: null,
+      armedIOId: null,
+      dockedIO: [...(level.inputs||[]), ...(level.outputs||[])].map(g => g.id),
     });
     
     // Try to load autosave
@@ -161,7 +152,7 @@ export const useStore = create<StoreState>((set, get) => ({
     };
     
     set({
-      gates: [...state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT'), gate],
+      gates: [...state.gates, gate],
     });
   },
   
@@ -218,28 +209,40 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   arrangeIO: () => {
+    const level = get().currentLevel;
+    if (!level) return;
+    set({ dockedIO: [...(level.inputs||[]), ...(level.outputs||[])].map(g => g.id) });
+  },
+
+  setArmedIO: (gateId: string | null) => set({ armedIOId: gateId }),
+
+  placeIO: (gateId: string, x: number, y: number) => {
     const state = get();
     const level = state.currentLevel;
     if (!level) return;
-    const snap = state.ui.gridSnap;
-    const barY = Math.floor(snap * 0.75);
-    const horizontalSpacing = snap * 2.5;
-    const leftMargin = snap * 2;
-    const rightMargin = snap * 2;
-    const totalWidth = (level.grid.cols - 1) * snap;
+    const srcInput = (level.inputs||[]).find(g => g.id === gateId);
+    const srcOutput = (level.outputs||[]).find(g => g.id === gateId);
+    const src = srcInput || srcOutput;
+    if (!src) return;
+    const exists = state.gates.find(g => g.id === gateId);
+    const newGate: Gate = { ...src, type: (srcInput ? 'INPUT' : 'OUTPUT'), x, y } as Gate;
+    set({
+      gates: exists ? state.gates.map(g => g.id === gateId ? newGate : g) : [...state.gates, newGate],
+      dockedIO: state.dockedIO.filter(id => id !== gateId),
+      armedIOId: null,
+    });
+  },
 
-    const inputs = state.gates.filter(g => g.type === 'INPUT');
-    const outputs = state.gates.filter(g => g.type === 'OUTPUT');
-    const others = state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT');
-
-    const arrangedInputs = inputs.map((g, i) => ({ ...g, x: leftMargin + i * horizontalSpacing, y: barY }));
-    const arrangedOutputs = outputs.map((g, i) => ({
-      ...g,
-      x: totalWidth - rightMargin - (outputs.length - 1) * horizontalSpacing + i * horizontalSpacing,
-      y: barY,
-    }));
-
-    set({ gates: [...arrangedInputs, ...others, ...arrangedOutputs] });
+  returnIO: (gateId: string) => {
+    const state = get();
+    const level = state.currentLevel;
+    if (!level) return;
+    set({
+      gates: state.gates.filter(g => g.id !== gateId),
+      wires: state.wires.filter(w => w.fromGateId !== gateId && w.toGateId !== gateId),
+      dockedIO: state.dockedIO.includes(gateId) ? state.dockedIO : [...state.dockedIO, gateId],
+      selection: {},
+    });
   },
   
   moveGate: (gateId: string, x: number, y: number) => {
@@ -377,10 +380,9 @@ export const useStore = create<StoreState>((set, get) => ({
     if (state.selection.gateId) {
       const gateId = state.selection.gateId;
       const gate = state.gates.find(g => g.id === gateId);
-      // Do not delete INPUT/OUTPUT; instead re-arrange them back to bar and clear selection
+      // Do not delete INPUT/OUTPUT; instead return to IO tray
       if (gate && (gate.type === 'INPUT' || gate.type === 'OUTPUT')) {
-        get().arrangeIO();
-        set({ selection: {} });
+        get().returnIO(gate.id);
         return;
       }
       set({
@@ -448,29 +450,14 @@ export const useStore = create<StoreState>((set, get) => ({
     const state = get();
     if (!state.currentLevel) return;
     const level = state.currentLevel;
-    const snap = level.grid.snap;
-    const barY = Math.floor(snap * 0.75); // top bar center, closer to top
-    const horizontalSpacing = snap * 2.5;
-    const leftMargin = snap * 2;
-    const rightMargin = snap * 2;
-    const totalWidth = (level.grid.cols - 1) * snap;
-    const arrangedInputs: Gate[] = (level.inputs || []).map((g, index) => ({
-      ...g,
-      x: leftMargin + index * horizontalSpacing,
-      y: barY,
-    }));
-    const arrangedOutputs: Gate[] = (level.outputs || []).map((g, index) => ({
-      ...g,
-      x: totalWidth - rightMargin - ((level.outputs?.length || 1) - 1) * horizontalSpacing + index * horizontalSpacing,
-      y: barY,
-    }));
     
     set({
-      gates: [...arrangedInputs, ...arrangedOutputs],
+      gates: [],
       wires: [],
       selection: {},
       sim: { running: false },
       wireStart: undefined,
+      dockedIO: [...(level.inputs||[]), ...(level.outputs||[])].map(g => g.id),
     });
   },
   
@@ -492,8 +479,9 @@ export const useStore = create<StoreState>((set, get) => ({
     const save = await loadAutosave(state.currentLevel.id);
     if (save) {
       set({
-        gates: [...state.currentLevel.inputs, ...save.gates, ...state.currentLevel.outputs],
+        gates: [...save.gates],
         wires: save.wires,
+        dockedIO: [...(state.currentLevel.inputs||[]), ...(state.currentLevel.outputs||[])].map(g => g.id),
       });
     }
   },

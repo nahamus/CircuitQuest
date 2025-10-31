@@ -11,7 +11,6 @@ export async function fetchLevelIndex(): Promise<string[]> {
       throw new Error(`Failed to load level index: ${res.status} ${res.statusText}`);
     }
     const data = await res.json();
-    console.log('Loaded level index:', data);
     return data;
   } catch (error) {
     console.error('Error fetching level index:', error);

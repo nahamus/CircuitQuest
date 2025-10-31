@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
 import { fetchLevelIndex } from '../services/levels';
 import TopBar from '../components/TopBar';
+import HelpModal from '../components/HelpModal';
 import PalettePanel from '../components/PalettePanel';
 import CircuitCanvas from '../components/CircuitCanvas';
 import ScorePanel from '../components/ScorePanel';
 import ObjectivePanel from '../components/ObjectivePanel';
+import IOTrayPanel from '../components/IOTrayPanel';
 import Toast from '../components/Toast';
 import './Play.css';
 
@@ -15,6 +17,7 @@ export default function Play() {
   const navigate = useNavigate();
   const { loadLevel, sim, currentLevel } = useStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const [levelIds, setLevelIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -64,12 +67,17 @@ export default function Play() {
       <TopBar />
       <div className="play-content">
         <div className="play-left">
+          <IOTrayPanel />
           <ObjectivePanel />
           <PalettePanel />
         </div>
         <CircuitCanvas />
         <ScorePanel />
       </div>
+      <button className="help-fab" title="How to Play" onClick={() => setShowHelp(true)}>?</button>
+      {showHelp && (
+        <HelpModal onClose={() => setShowHelp(false)} />
+      )}
       {toast && (
         <Toast
           message={toast.message}

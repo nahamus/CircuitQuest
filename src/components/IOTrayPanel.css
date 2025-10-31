@@ -1,0 +1,13 @@
+.io-tray { width: 200px; }
+.io-tray h3 { font-size: 14px; margin-bottom: 8px; color: #e0e0e0; }
+.io-armed { background: #2a3a4a; border: 1px solid #0bd3ff; color: #0bd3ff; border-radius: 6px; padding: 6px 8px; font-size: 12px; text-align: center; margin-bottom: 8px; }
+.io-tray-list { display: flex; flex-direction: column; gap: 8px; }
+.io-tray-item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 6px; background: #1a1a24; border: 1px solid #333; border-radius: 8px; padding: 8px; }
+.io-tray-name { color: #e0e0e0; font-weight: 600; font-size: 12px; }
+.io-tray-badge { font-size: 11px; padding: 2px 6px; border-radius: 10px; border: 1px solid #444; background: #2a2a3a; color: #bbb; }
+.io-tray-badge.t1 { background: #00ff8877; color: #000; border-color: #00ff88; }
+.io-tray-badge.t0 { background: #444; color: #eee; }
+.io-tray-place { background: #0bd3ff; color: #101116; border: none; border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+.io-tray-place:hover { filter: brightness(1.05); }
+.io-tray-empty { color: #888; font-size: 12px; text-align: center; padding: 8px 0; }
+

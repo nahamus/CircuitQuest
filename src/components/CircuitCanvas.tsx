@@ -36,6 +36,7 @@ const GATE_LABELS: Record<GateType, string> = {
 export default function CircuitCanvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState<{ gateId: string; startX: number; startY: number; offsetX: number; offsetY: number } | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   
@@ -46,17 +47,67 @@ export default function CircuitCanvas() {
     selection,
     wireStart,
     armedGateType,
+    armedIOId,
     setSelection,
     placeGate,
+    placeIO,
     moveGate,
     startWire,
     completeWire,
+    deleteSelection,
     setZoom,
     setOffset,
     setArmedGateType,
     fitToView,
     currentLevel,
   } = useStore();
+
+  // Compute IO bar metrics (center Y and height) responsive to viewport
+  const computeBarMetrics = useCallback((): { barY: number; barHeight: number; padding: number } | null => {
+    if (!currentLevel) return null;
+    const snap = ui.gridSnap;
+    // Measure overlay pixel height and convert to world units
+    let scaleY = 1, overlayPx = 64, paddingPx = 6;
+    const svg = svgRef.current;
+    const overlay = overlayRef.current;
+    if (svg) {
+      const vb = svg.viewBox.baseVal;
+      const rect = svg.getBoundingClientRect();
+      scaleY = rect.height / Math.max(vb.height, 1);
+    }
+    if (overlay) {
+      overlayPx = overlay.getBoundingClientRect().height;
+    }
+    const barHeight = Math.max(snap * 1.2, overlayPx / Math.max(scaleY, 0.0001));
+    const padding = Math.max(snap * 0.25, paddingPx / Math.max(scaleY, 0.0001));
+    const barY = (barHeight / 2) + padding * 0.5;
+    return { barY, barHeight, padding };
+  }, [currentLevel, ui.gridSnap]);
+
+  // Keep INPUT/OUTPUT vertically centered in the bar on resize/zoom/gate changes
+  useEffect(() => {
+    const metrics = computeBarMetrics();
+    if (!metrics) return;
+    const { barY } = metrics;
+    const epsilon = 0.5;
+    // Only adjust IO vertical alignment on zoom/resize, not on every gate move
+    const align = () => {
+      const m = computeBarMetrics();
+      if (!m) return;
+      const y = m.barY;
+      const ios = (gates || []).filter(g => g.type === 'INPUT' || g.type === 'OUTPUT');
+      ios.forEach(g => {
+        if (Math.abs(g.y - y) > epsilon) moveGate(g.id, g.x, y);
+      });
+    };
+    align();
+    // Re-center on window resize
+    const onResize = () => {
+      align();
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [computeBarMetrics, moveGate, ui.zoom]);
 
   // Auto-fit view when level loads
   useEffect(() => {
@@ -182,6 +233,18 @@ export default function CircuitCanvas() {
     };
   }, [ui.zoom, ui.offsetX, ui.offsetY, setZoom, setOffset]);
 
+  // Handle Delete/Backspace to delete selection (IO will return to tray)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        deleteSelection();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [deleteSelection]);
+
   const handleCanvasClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
     const rect = svgRef.current?.getBoundingClientRect();
@@ -199,20 +262,21 @@ export default function CircuitCanvas() {
         Math.abs(sx - g.x) <= gateHalf &&
         Math.abs(sy - g.y) <= gateHalf
       );
-      const barY = Math.floor(snap * 0.75);
-      const barHeight = snap * 2;
-      const inBar = sy >= (barY - barHeight / 2) && sy <= (barY + barHeight / 2);
-      if (hitIO || inBar) {
+      if (hitIO) {
         // Ignore placement; keep armed so user can click elsewhere
         return;
       }
       placeGate(armedGateType, sx, sy);
       playClick();
       setArmedGateType(null);
+    } else if (armedIOId) {
+      // Place IO from tray
+      placeIO(armedIOId, sx, sy);
+      playClick();
     } else {
       setSelection();
     }
-  }, [armedGateType, screenToWorld, snapToGrid, placeGate, setSelection]);
+  }, [armedGateType, armedIOId, screenToWorld, snapToGrid, placeGate, placeIO, setSelection]);
 
   const handleGateMouseDown = useCallback((e: React.MouseEvent, gate: Gate) => {
     e.stopPropagation();
@@ -263,9 +327,21 @@ export default function CircuitCanvas() {
     const sx = gate.x;
     const sy = gate.y;
     const snap = ui.gridSnap;
-    const width = snap * 0.8;
-    const height = snap * 0.8;
-    const portSize = snap * 0.15;
+    // Base sizes from snap
+    let width = snap * 0.8;
+    let height = snap * 0.8;
+    let portSize = snap * 0.15;
+    // Scale IO gates proportionally to the overlay bar height for better readability
+    if (gate.type === 'INPUT' || gate.type === 'OUTPUT') {
+      const m = computeBarMetrics();
+      if (m) {
+        const targetUnit = m.barHeight; // world units
+        const scale = Math.max(1.6, Math.min(3.0, targetUnit / (snap * 1.0)));
+        width *= scale;
+        height *= scale;
+        portSize *= Math.min(2.2, scale * 1.2);
+      }
+    }
     const isSelected = selection.gateId === gate.id;
 
     const hasDiagram = gate.type === 'AND' || gate.type === 'OR' || gate.type === 'XOR' || gate.type === 'NOT' || gate.type === 'BUF';
@@ -628,70 +704,8 @@ export default function CircuitCanvas() {
   };
 
   const renderFloatingBar = () => {
-    if (!currentLevel) return null;
-    
-    const snap = ui.gridSnap;
-    // Position bar at the very top of the canvas (slightly lower than 0 to keep content visible)
-    const barY = Math.floor(snap * 0.75);
-    const barHeight = snap * 2; // Height of the bar area
-    const padding = snap * 0.5;
-    const minX = padding;
-    const maxX = (currentLevel.grid.cols - 1) * snap + padding;
-    
-    // Get INPUT and OUTPUT gates - show bar if they exist
-    const inputGates = gates.filter(g => g.type === 'INPUT');
-    const outputGates = gates.filter(g => g.type === 'OUTPUT');
-    
-    // Show bar if we have IO gates OR if level has IO gates defined
-    const hasIOGates = (inputGates.length > 0 || outputGates.length > 0) ||
-                       ((currentLevel.inputs?.length || 0) > 0 || (currentLevel.outputs?.length || 0) > 0);
-    
-    if (!hasIOGates) return null;
-    
-    return (
-      <g className="floating-bar">
-        {/* Background */}
-        <rect
-          x={minX}
-          y={barY - barHeight / 2}
-          width={maxX - minX}
-          height={barHeight}
-          fill="#1a1f2e"
-          rx={snap * 0.15}
-        />
-        {/* Top border */}
-        <line
-          x1={minX}
-          y1={barY - barHeight / 2}
-          x2={maxX}
-          y2={barY - barHeight / 2}
-          stroke="#0bd3ff"
-          strokeWidth={2}
-          strokeOpacity={0.5}
-        />
-        {/* Bottom border */}
-        <line
-          x1={minX}
-          y1={barY + barHeight / 2}
-          x2={maxX}
-          y2={barY + barHeight / 2}
-          stroke="#0bd3ff"
-          strokeWidth={2}
-          strokeOpacity={0.3}
-        />
-        {/* Divider line between inputs and outputs */}
-        <line
-          x1={(minX + maxX) / 2}
-          y1={barY - barHeight / 2}
-          x2={(minX + maxX) / 2}
-          y2={barY + barHeight / 2}
-          stroke="#0bd3ff"
-          strokeWidth={1}
-          strokeDasharray="4,4"
-          strokeOpacity={0.2}
-        />
-      </g>
-    );
+    // No visual bar in SVG; we use the HTML overlay for visuals
+    return null;
   };
 
   if (!currentLevel) return null;
@@ -719,6 +733,8 @@ export default function CircuitCanvas() {
 
   return (
     <div ref={containerRef} className="circuit-canvas-container">
+      {/* Responsive overlay bar (HTML) for clean visuals */}
+      <div ref={overlayRef} className="io-overlay" />
       <svg
         ref={svgRef}
         className="circuit-canvas grid-bg"
