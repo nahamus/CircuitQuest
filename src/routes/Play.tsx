@@ -42,19 +42,7 @@ export default function Play() {
       message: sim.last.message || (sim.last.success ? 'Success!' : 'Failed'),
       type: sim.last.success ? 'success' : 'error',
     });
-
-    // Auto-advance on success to the next level if available
-    if (sim.last.success && currentLevel) {
-      const idx = levelIds.indexOf(currentLevel.id);
-      const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
-      if (nextId) {
-        const t = setTimeout(() => navigate(`/play/${nextId}`), 1200);
-        return () => clearTimeout(t);
-      } else if (levelIds.length > 0) {
-        // No more levels
-        setToast({ message: 'All challenges complete! 🎉', type: 'success' });
-      }
-    }
+    // Do not auto-advance on success; Next button is available on the overlay bar
   }, [sim.last, currentLevel?.id, levelIds, navigate]);
 
   if (!currentLevel) {

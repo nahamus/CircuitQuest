@@ -269,13 +269,11 @@ export const useStore = create<StoreState>((set, get) => ({
     // Helper function to calculate port position (matching renderGate)
     const getPortPosition = (gateX: number, gateY: number, portIndex: number, portCount: number, isInput: boolean) => {
       const centerY = gateY + ((portIndex + 1) / (portCount + 1)) * gateHeight - gateHeight / 2;
-      const baseCenterX = isInput 
+      const centerX = isInput 
         ? gateX - gateWidth / 2 - portSize / 2
         : gateX + gateWidth / 2 + portSize / 2;
-      // Tiny visual correction so the line appears centered on the pin
-      const epsilon = portSize * 0.05;
-      const correctedX = isInput ? baseCenterX + epsilon : baseCenterX - epsilon;
-      return { x: correctedX, y: centerY };
+      // Attach wires to the exact center of the pin for clean vertical alignment
+      return { x: centerX, y: centerY };
     };
     
     // First, update the gates array with the new position
@@ -321,9 +319,8 @@ export const useStore = create<StoreState>((set, get) => ({
     const portSize = snap * 0.15;
     
     const centerY = gate.y + ((port.index + 1) / (gate.outputs.length + 1)) * gateHeight - gateHeight / 2;
-    const baseCenterX = gate.x + gateWidth / 2 + portSize / 2;
-    const epsilon = portSize * 0.05;
-    set({ wireStart: { gateId, portIndex, x: baseCenterX - epsilon, y: centerY } });
+    const centerX = gate.x + gateWidth / 2 + portSize / 2;
+    set({ wireStart: { gateId, portIndex, x: centerX, y: centerY } });
   },
   
   completeWire: (toGateId: string, toPortIndex: number) => {
@@ -363,12 +360,9 @@ export const useStore = create<StoreState>((set, get) => ({
     
     // Calculate port positions matching renderGate
     const fromPortY = fromGate.y + ((fromPort.index + 1) / (fromGate.outputs.length + 1)) * gateHeight - gateHeight / 2;
-    const fromCenterX = fromGate.x + gateWidth / 2 + portSize / 2; // center of output pin
+    const fromPortX = fromGate.x + gateWidth / 2 + portSize / 2; // center of output pin
     const toPortY = toGate.y + ((toPort.index + 1) / (toGate.inputs.length + 1)) * gateHeight - gateHeight / 2;
-    const toCenterX = toGate.x - gateWidth / 2 - portSize / 2; // center of input pin
-    const epsilon = portSize * 0.05;
-    const fromPortX = fromCenterX - epsilon; // nudge left slightly
-    const toPortX = toCenterX + epsilon;     // nudge right slightly
+    const toPortX = toGate.x - gateWidth / 2 - portSize / 2; // center of input pin
     
     const wireId = `wire_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const fromX = fromPortX;

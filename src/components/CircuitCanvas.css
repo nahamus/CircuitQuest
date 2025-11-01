@@ -10,7 +10,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: clamp(56px, 8vh, 100px);
+  height: clamp(72px, 10vh, 120px);
   background: linear-gradient(180deg, rgba(11,211,255,0.12), rgba(11,211,255,0.04) 60%, transparent);
   border-bottom: 1px solid rgba(11,211,255,0.25);
   pointer-events: none; /* do not block canvas interactions */
@@ -22,12 +22,12 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: clamp(56px, 8vh, 100px);
+  height: clamp(72px, 10vh, 120px);
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 10px;
-  padding: 8px 16px 10px 16px;
+  padding: 10px 16px 12px 16px;
   z-index: 4;
   pointer-events: none;
   overflow: hidden; /* prevent content from spilling below the bar */
