@@ -5,7 +5,7 @@ import { useStore } from '../state/useStore';
 import type { Gate, Wire, GateType } from '../models/types';
 import clsx from 'clsx';
 import './CircuitCanvas.css';
-import { playClick, playSnap, playSuccess } from '../utils/sound';
+import { playClick, playSnap } from '../utils/sound';
 
 const GATE_COLORS: Record<GateType, string> = {
   INPUT: '#00ff88',
@@ -100,7 +100,6 @@ export default function CircuitCanvas() {
   useEffect(() => {
     const metrics = computeBarMetrics();
     if (!metrics) return;
-    const { barY } = metrics;
     const epsilon = 0.5;
     // Only adjust IO vertical alignment on zoom/resize, not on every gate move
     const align = () => {
@@ -140,19 +139,7 @@ export default function CircuitCanvas() {
     return [Math.round(x / snap) * snap, Math.round(y / snap) * snap];
   }, [ui.gridSnap]);
 
-  const worldToScreen = useCallback((x: number, y: number): [number, number] => {
-    const svg = svgRef.current;
-    if (!svg) return [x, y];
-    const viewBox = svg.viewBox.baseVal;
-    const svgWidth = svg.clientWidth || 800;
-    const svgHeight = svg.clientHeight || 600;
-    const scaleX = svgWidth / viewBox.width;
-    const scaleY = svgHeight / viewBox.height;
-    return [
-      (x - viewBox.x) * scaleX,
-      (y - viewBox.y) * scaleY,
-    ];
-  }, []);
+  // worldToScreen helper removed (unused)
 
   const screenToWorld = useCallback((x: number, y: number): [number, number] => {
     const svg = svgRef.current;
@@ -575,7 +562,7 @@ export default function CircuitCanvas() {
                 // Use exact port world coordinates to start the wire
                 const portWorldX = gate.x + (width / 2 + portSize / 2);
                 const portWorldY = gate.y + portY;
-                  startWire(gate.id, port.index, portWorldX, portWorldY);
+                startWire(gate.id, port.index);
                 setMousePos({ x: portWorldX, y: portWorldY });
                   playClick();
               }}
@@ -583,7 +570,7 @@ export default function CircuitCanvas() {
                 e.stopPropagation();
                 const portWorldX = gate.x + (width / 2 + portSize / 2);
                 const portWorldY = gate.y + portY;
-                startWire(gate.id, port.index, portWorldX, portWorldY);
+                startWire(gate.id, port.index);
                 setMousePos({ x: portWorldX, y: portWorldY });
                 playClick();
               }}
@@ -591,7 +578,7 @@ export default function CircuitCanvas() {
                 e.stopPropagation();
                 const portWorldX = gate.x + (width / 2 + portSize / 2);
                 const portWorldY = gate.y + portY;
-                startWire(gate.id, port.index, portWorldX, portWorldY);
+                startWire(gate.id, port.index);
                 setMousePos({ x: portWorldX, y: portWorldY });
                 playClick();
               }}
