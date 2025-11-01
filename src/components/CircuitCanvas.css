@@ -26,18 +26,18 @@
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
-  gap: 12px;
-  padding: 6px 16px;
+  gap: 10px;
+  padding: 8px 16px 10px 16px;
   z-index: 4;
   pointer-events: none;
 }
 .io-overlay-controls .ioc-left { pointer-events: none; }
 .io-overlay-controls .ioc-center { pointer-events: none; }
 .io-overlay-controls .ioc-right { pointer-events: auto; }
-.ioc-title { color: #e0e0e0; font-weight: 700; font-size: 14px; }
-.ioc-sub { color: #9fb3c8; font-size: 12px; margin-top: 2px; }
+.ioc-title { color: #e0e0e0; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
+.ioc-sub { color: #9fb3c8; font-size: 12px; margin-top: 2px; opacity: 0.95; }
 .ioc-goal { display: flex; gap: 8px; }
-.ioc-goal-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #d0e6f6; border: 1px solid #2e4b59; background: rgba(11,211,255,0.08); padding: 2px 8px; border-radius: 999px; }
+.ioc-goal-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #d0e6f6; border: 1px solid #2e4b59; background: rgba(11,211,255,0.06); padding: 2px 8px; border-radius: 999px; }
 .ioc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid #2e4b59; }
 .ioc-dot.t1 { background: #00ff88; border-color: #00ce70; }
 .ioc-dot.t0 { background: #3a3a4a; border-color: #2f2f3a; }

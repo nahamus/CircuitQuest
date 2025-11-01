@@ -344,7 +344,10 @@ export default function CircuitCanvas() {
     const portSize = snap * 0.15;
     const isSelected = selection.gateId === gate.id;
 
-    const hasDiagram = gate.type === 'AND' || gate.type === 'OR' || gate.type === 'XOR' || gate.type === 'NOT' || gate.type === 'BUF';
+    const hasDiagram =
+      gate.type === 'AND' || gate.type === 'OR' || gate.type === 'XOR' ||
+      gate.type === 'NOT' || gate.type === 'BUF' || gate.type === 'SPLIT' ||
+      gate.type === 'NAND' || gate.type === 'NOR' || gate.type === 'XNOR';
 
     return (
       <g
@@ -516,6 +519,13 @@ export default function CircuitCanvas() {
                 <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
               </>
             )}
+            {gate.type === 'SPLIT' && (
+              <>
+                <path d={`M ${-width*0.25} 0 H 0`} stroke="#e0e0e0" strokeWidth={2} />
+                <path d={`M 0 0 L ${width*0.25} ${-height*0.2}`} stroke="#e0e0e0" strokeWidth={2} />
+                <path d={`M 0 0 L ${width*0.25} ${height*0.2}`} stroke="#e0e0e0" strokeWidth={2} />
+              </>
+            )}
             {gate.type === 'INPUT' && (
               <text
                 x={0}
@@ -673,32 +683,165 @@ export default function CircuitCanvas() {
     const snap = ui.gridSnap;
     const width = snap * 0.8;
     const height = snap * 0.8;
-    
+    const stroke = GATE_COLORS[armedGateType];
+    const sw = 2;
+
+    const shape = (() => {
+      switch (armedGateType) {
+        case 'NOT':
+          return (
+            <>
+              <polygon
+                points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke={stroke} strokeWidth={sw} opacity={0.85} />
+            </>
+          );
+        case 'BUF':
+          return (
+            <polygon
+              points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={sw}
+              opacity={0.85}
+            />
+          );
+        case 'AND':
+          return (
+            <path
+              d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={sw}
+              opacity={0.85}
+            />
+          );
+        case 'NAND':
+          return (
+            <>
+              <path
+                d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke={stroke} strokeWidth={sw} opacity={0.85} />
+            </>
+          );
+        case 'OR':
+          return (
+            <>
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+            </>
+          );
+        case 'NOR':
+          return (
+            <>
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke={stroke} strokeWidth={sw} opacity={0.85} />
+            </>
+          );
+        case 'XOR':
+          return (
+            <>
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <path
+                d={`M ${-width*0.35} ${-height*0.3} C ${-width*0.3} ${-height*0.1}, ${-width*0.3} ${height*0.1}, ${-width*0.35} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+            </>
+          );
+        case 'XNOR':
+          return (
+            <>
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <path
+                d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <path
+                d={`M ${-width*0.35} ${-height*0.3} C ${-width*0.3} ${-height*0.1}, ${-width*0.3} ${height*0.1}, ${-width*0.35} ${height*0.3}`}
+                fill="none"
+                stroke={stroke}
+                strokeWidth={sw}
+                opacity={0.85}
+              />
+              <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke={stroke} strokeWidth={sw} opacity={0.85} />
+            </>
+          );
+        case 'SPLIT':
+          return (
+            <>
+              <path d={`M ${-width*0.25} 0 H 0`} stroke={stroke} strokeWidth={sw} opacity={0.85} />
+              <path d={`M 0 0 L ${width*0.25} ${-height*0.2}`} stroke={stroke} strokeWidth={sw} opacity={0.85} />
+              <path d={`M 0 0 L ${width*0.25} ${height*0.2}`} stroke={stroke} strokeWidth={sw} opacity={0.85} />
+            </>
+          );
+        default:
+          return null;
+      }
+    })();
+
     return (
-      <g
-        className="ghost-gate"
-        transform={`translate(${sx}, ${sy})`}
-        opacity={0.5}
-      >
-        <rect
-          x={-width / 2}
-          y={-height / 2}
-          width={width}
-          height={height}
-          fill={GATE_COLORS[armedGateType]}
-          stroke={GATE_COLORS[armedGateType]}
-          strokeWidth={2}
-          strokeDasharray="4,4"
-        />
-        <text
-          className="gate-label"
-          x={0}
-          y={0}
-          dy="0.3em"
-          fill={GATE_COLORS[armedGateType]}
-        >
-          {GATE_LABELS[armedGateType]}
-        </text>
+      <g className="ghost-gate" transform={`translate(${sx}, ${sy})`} opacity={0.75}>
+        {shape}
       </g>
     );
   };

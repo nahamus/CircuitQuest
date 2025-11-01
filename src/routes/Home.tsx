@@ -28,6 +28,7 @@ export default function Home() {
       <div className="home-content">
         <h1>Circuit Quest</h1>
         <p className="subtitle">Build circuits to solve logic puzzles</p>
+        <div className="home-divider" />
         
         {loading && <p className="subtitle">Loading...</p>}
         {error && (
@@ -40,7 +41,6 @@ export default function Home() {
             className="primary"
             onClick={() => navigate(`/play/${levels[0]}`)}
             disabled={levels.length === 0}
-            style={{ marginTop: '20px' }}
           >
             Play
           </button>
