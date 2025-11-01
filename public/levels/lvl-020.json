@@ -1,0 +1,24 @@
+{
+  "id": "lvl-020",
+  "title": "Half Subtractor",
+  "description": "Build a half subtractor: D = A XOR B, Bout = ¬A ∧ B.",
+  "grid": { "cols": 34, "rows": 20, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": false, "x": 1, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": true,  "x": 1, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outD",   "label": "D",   "target": true,  "x": 32, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "outBout","label": "Bout","target": true,  "x": 32, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 1, "OR": 0, "NOT": 1, "BUF": 1, "XOR": 1, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 2, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 8,
+  "hints": {
+    "subGoals": [
+      "Compute D with XOR",
+      "Compute Bout using ¬A and B"
+    ]
+  }
+}
+
+

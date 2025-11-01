@@ -1,0 +1,27 @@
+{
+  "id": "lvl-014",
+  "title": "4:1 Multiplexer",
+  "description": "Build a 4:1 MUX: F = Σ m(S1,S0) using D0..D3.",
+  "grid": { "cols": 36, "rows": 22, "snap": 32 },
+  "inputs": [
+    { "id": "inD0", "label": "D0", "initial": false, "x": 1, "y": 4,  "inputs": [], "outputs": [] },
+    { "id": "inD1", "label": "D1", "initial": false, "x": 1, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "inD2", "label": "D2", "initial": true,  "x": 1, "y": 12, "inputs": [], "outputs": [] },
+    { "id": "inD3", "label": "D3", "initial": false, "x": 1, "y": 16, "inputs": [], "outputs": [] },
+    { "id": "inS0", "label": "S0", "initial": 0,     "x": 1, "y": 19, "inputs": [], "outputs": [] },
+    { "id": "inS1", "label": "S1", "initial": 1,     "x": 1, "y": 21, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outF", "label": "F", "target": true, "x": 34, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 6, "OR": 2, "NOT": 2, "BUF": 2, "XOR": 0, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 4, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 14,
+  "hints": {
+    "subGoals": [
+      "Build two 2:1 multiplexers",
+      "Combine them into 4:1 with S1"
+    ]
+  }
+}
+
+
