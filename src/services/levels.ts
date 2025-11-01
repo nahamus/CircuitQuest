@@ -1,4 +1,5 @@
 import type { Level } from '../models/types';
+import { logError } from '../utils/logger';
 
 // Use Vite's BASE_URL to handle base path correctly
 const BASE_URL = import.meta.env.BASE_URL;
@@ -7,13 +8,13 @@ export async function fetchLevelIndex(): Promise<string[]> {
   try {
     const res = await fetch(`${BASE_URL}levels/index.json`);
     if (!res.ok) {
-      console.error('Failed to fetch level index:', res.status, res.statusText);
+      logError('Failed to fetch level index:', res.status, res.statusText);
       throw new Error(`Failed to load level index: ${res.status} ${res.statusText}`);
     }
     const data = await res.json();
     return data;
   } catch (error) {
-    console.error('Error fetching level index:', error);
+    logError('Error fetching level index:', error);
     throw error;
   }
 }
@@ -52,7 +53,7 @@ export async function fetchPacks(): Promise<Record<string, string[]>> {
     const data = await res.json();
     return data as Record<string, string[]>;
   } catch (e) {
-    console.error('Error fetching packs:', e);
+    logError('Error fetching packs:', e);
     return { All: [] };
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
 import { fetchLevelIndex, fetchPacks } from '../services/levels';
+import { logError } from '../utils/logger';
 import TopBar from '../components/TopBar';
 import HelpModal from '../components/HelpModal';
 import PalettePanel from '../components/PalettePanel';
@@ -22,7 +23,7 @@ export default function Play() {
   useEffect(() => {
     if (id) {
       loadLevel(id).catch((err) => {
-        console.error('Failed to load level:', err);
+        logError('Failed to load level:', err);
         navigate('/');
       });
     }
@@ -41,7 +42,7 @@ export default function Play() {
           setLevelIds(ids.map(s => s.replace(/\.json$/, '')));
         }
       } catch (err) {
-        console.error('Failed to fetch lists', err);
+        logError('Failed to fetch lists', err);
       }
     };
     loadLists();
