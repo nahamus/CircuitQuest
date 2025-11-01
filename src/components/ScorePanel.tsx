@@ -5,7 +5,7 @@ import type { Progress } from '../services/storage';
 import './ScorePanel.css';
 
 export default function ScorePanel() {
-  const { currentLevel, resetLevel, runSimulation, sim } = useStore();
+  const { currentLevel, resetLevel, runSimulation, sim, ui, setShowLivePath, setTruthTableVisible, setShowHelp } = useStore();
   const currentGates = useStore((state) => 
     state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT').length
   );
@@ -36,11 +36,34 @@ export default function ScorePanel() {
           <div className="stat-label">Current</div>
           <div className="stat-value">{currentGates} gates, {currentWires} wires</div>
         </div>
+        <button
+          className="help-inline"
+          title="How to Play"
+          onClick={() => setShowHelp(true)}
+        >
+          ?
+        </button>
       </div>
       <div className="side-actions">
         <button className="side-btn danger" onClick={resetLevel}>↺ Reset</button>
         <button className="side-btn primary" onClick={runSimulation} disabled={sim.running}>
           {sim.running ? 'Running…' : '▶ Run'}
+        </button>
+        <div className="side-divider" />
+        <button
+          className="side-btn"
+          onClick={() => setTruthTableVisible(true)}
+          title="Open truth table for components"
+        >
+          Truth Table
+        </button>
+        <div className="side-divider" />
+        <button
+          className="side-btn"
+          onClick={() => setShowLivePath(!ui.showLivePath)}
+          title="Highlight paths carrying 1 during build"
+        >
+          {ui.showLivePath ? 'Guide: On' : 'Guide: Off'}
         </button>
       </div>
     </div>

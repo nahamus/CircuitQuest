@@ -1,5 +1,7 @@
 .score-panel {
   width: 220px;
+  position: relative;
+  padding-bottom: 68px; /* space for bottom help button */
 }
 
 .score-panel h3 {
@@ -108,4 +110,29 @@
   outline: none;
   box-shadow: 0 0 0 2px rgba(16, 18, 24, 0.9), 0 0 0 4px rgba(11, 211, 255, 0.5), 0 8px 24px rgba(11, 211, 255, 0.22);
 }
+
+.side-divider {
+  height: 1px;
+  background: #2a2a3a;
+  border-top: 1px solid #333;
+  margin: 4px 0;
+}
+
+.help-inline {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #0bd3ff;
+  border: none;
+  color: #101116;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(11, 211, 255, 0.3);
+}
+.help-inline:hover { filter: brightness(1.1); }
 

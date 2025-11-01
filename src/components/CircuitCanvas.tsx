@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchLevelIndex } from '../services/levels';
 import { useStore } from '../state/useStore';
@@ -6,6 +6,7 @@ import type { Gate, Wire, GateType } from '../models/types';
 import clsx from 'clsx';
 import './CircuitCanvas.css';
 import { playClick, playSnap } from '../utils/sound';
+import TruthTableModal from './TruthTableModal';
 
 const GATE_COLORS: Record<GateType, string> = {
   INPUT: '#00ff88',
@@ -65,6 +66,8 @@ export default function CircuitCanvas() {
     fitToView,
     currentLevel,
     sim,
+    showTruthTable,
+    setTruthTableVisible,
   } = useStore();
 
   // Load level ids for Next button
@@ -611,8 +614,7 @@ export default function CircuitCanvas() {
 
   const renderWire = (wire: Wire) => {
     const isSelected = selection.wireId === wire.id;
-    const isActive = wires.some(w => w.id === wire.id && 
-      gates.find(g => g.id === w.fromGateId)?.outputs[w.fromPortIndex]?.value === true);
+    const isActive = ui.showLivePath ? liveActiveWireIds.has(wire.id) : false;
 
     // Check if wire has valid path
     if (!wire.path || wire.path.length < 2) {
@@ -861,6 +863,157 @@ export default function CircuitCanvas() {
   const viewBoxWidth = Math.max(maxX - minX, currentLevel.grid.cols * snap);
   const viewBoxHeight = Math.max(maxY - minY, (currentLevel.grid.rows + 1) * snap); // Extra space for bar
 
+  // Live guide evaluation: compute which wires carry a logical 1 from current inputs
+  const liveActiveWireIds = useMemo(() => {
+    if (!ui.showLivePath) return new Set<string>();
+    // Local maps of signal values
+    const outVals = new Map<string, Map<number, boolean | undefined>>(); // gateId -> outIndex -> value
+    const inVals = new Map<string, Map<number, boolean | undefined>>(); // gateId -> inIndex -> value
+
+    const getOut = (g: Gate, idx: number) => (outVals.get(g.id)?.get(idx));
+    const setOut = (g: Gate, idx: number, v: boolean | undefined) => {
+      let m = outVals.get(g.id); if (!m) { m = new Map(); outVals.set(g.id, m); }
+      const prev = m.get(idx);
+      if (prev !== v) { m.set(idx, v); return true; }
+      return false;
+    };
+    const getIn = (g: Gate, idx: number) => (inVals.get(g.id)?.get(idx));
+    const setIn = (g: Gate, idx: number, v: boolean | undefined) => {
+      let m = inVals.get(g.id); if (!m) { m = new Map(); inVals.set(g.id, m); }
+      const prev = m.get(idx);
+      if (prev !== v) { m.set(idx, v); return true; }
+      return false;
+    };
+
+    // Initialize inputs
+    gates.forEach(g => {
+      if (g.type === 'INPUT') {
+        setOut(g, 0, !!g.initial);
+      }
+    });
+
+    const evalGate = (g: Gate): boolean => {
+      // Returns true if any output changed
+      const iv = (i: number) => (getIn(g, i));
+      const writeSingle = (v: boolean | undefined) => setOut(g, 0, v);
+      const writeSplit = (v: boolean | undefined) => {
+        const a = setOut(g, 0, v);
+        const b = setOut(g, 1, v);
+        return a || b;
+      };
+      switch (g.type) {
+        case 'INPUT':
+          return false;
+        case 'BUF':
+          return writeSingle(iv(0));
+        case 'NOT':
+          return writeSingle(iv(0) === undefined ? undefined : !iv(0)!);
+        case 'SPLIT':
+          return writeSplit(iv(0));
+        case 'AND': {
+          const a = iv(0); const b = iv(1);
+          const v = (a === undefined || b === undefined) ? undefined : !!(a && b);
+          return writeSingle(v);
+        }
+        case 'NAND': {
+          const a = iv(0); const b = iv(1);
+          const v = (a === undefined || b === undefined) ? undefined : !(a && b);
+          return writeSingle(v);
+        }
+        case 'OR': {
+          const a = iv(0); const b = iv(1);
+          const v = (a === undefined || b === undefined) ? undefined : !!(a || b);
+          return writeSingle(v);
+        }
+        case 'NOR': {
+          const a = iv(0); const b = iv(1);
+          const v = (a === undefined || b === undefined) ? undefined : !(a || b);
+          return writeSingle(v);
+        }
+        case 'XOR': {
+          const a = iv(0); const b = iv(1);
+          const v = (a === undefined || b === undefined) ? undefined : (!!a !== !!b);
+          return writeSingle(v);
+        }
+        case 'XNOR': {
+          const a = iv(0); const b = iv(1);
+          const v = (a === undefined || b === undefined) ? undefined : (!!a === !!b);
+          return writeSingle(v);
+        }
+        case 'OUTPUT':
+          return false;
+        default:
+          return false;
+      }
+    };
+
+    // Iterate propagation until stable or max passes
+    const maxPasses = gates.length + wires.length + 5;
+    for (let pass = 0; pass < maxPasses; pass++) {
+      let changed = false;
+      // Propagate along wires
+      wires.forEach(w => {
+        const from = gates.find(g => g.id === w.fromGateId);
+        const to = gates.find(g => g.id === w.toGateId);
+        if (!from || !to) return;
+        const v = getOut(from, w.fromPortIndex);
+        if (v !== undefined) {
+          changed = setIn(to, w.toPortIndex, v) || changed;
+        }
+      });
+      // Evaluate gates
+      gates.forEach(g => {
+        changed = evalGate(g) || changed;
+      });
+      if (!changed) break;
+    }
+
+    const active = new Set<string>();
+    wires.forEach(w => {
+      const from = gates.find(g => g.id === w.fromGateId);
+      if (!from) return;
+      const v = getOut(from, w.fromPortIndex);
+      if (v === true) active.add(w.id);
+    });
+    return active;
+  }, [ui.showLivePath, gates, wires]);
+
+  // Build truth tables for component gates in the palette
+  const buildComponentTruthTables = useCallback((): { title: string; headers: string[]; rows: (string|number)[][] }[] => {
+    if (!currentLevel) return [];
+    const has = (t: GateType) => currentLevel.palette && currentLevel.palette[t] > 0;
+    const tables: { title: string; headers: string[]; rows: (string|number)[][] }[] = [];
+
+    const twoInput = (title: string, fn: (a: number, b: number) => number) => {
+      const rows: (string|number)[][] = [
+        [0, 0, fn(0, 0)],
+        [0, 1, fn(0, 1)],
+        [1, 0, fn(1, 0)],
+        [1, 1, fn(1, 1)],
+      ];
+      tables.push({ title, headers: ['A','B','F'], rows });
+    };
+    const oneInput = (title: string, fn: (a: number) => number) => {
+      const rows: (string|number)[][] = [
+        [0, fn(0)],
+        [1, fn(1)],
+      ];
+      tables.push({ title, headers: ['A','F'], rows });
+    };
+
+    if (has('AND')) twoInput('AND', (a,b) => a & b);
+    if (has('NAND')) twoInput('NAND', (a,b) => (a & b) ? 0 : 1);
+    if (has('OR')) twoInput('OR', (a,b) => (a | b));
+    if (has('NOR')) twoInput('NOR', (a,b) => (a | b) ? 0 : 1);
+    if (has('XOR')) twoInput('XOR', (a,b) => (a ^ b));
+    if (has('XNOR')) twoInput('XNOR', (a,b) => (a ^ b) ? 0 : 1);
+    if (has('NOT')) oneInput('NOT', (a) => a ? 0 : 1);
+    if (has('BUF')) oneInput('BUF', (a) => a);
+    // SPLIT has no logical truth table; it is a routing element
+
+    return tables;
+  }, [currentLevel]);
+
   return (
     <div ref={containerRef} className="circuit-canvas-container">
       {/* Responsive overlay bar (HTML) for clean visuals */}
@@ -871,10 +1024,9 @@ export default function CircuitCanvas() {
           {currentLevel?.description && (
             <div className="ioc-sub">{currentLevel.description}</div>
           )}
-        </div>
-        <div className="ioc-center">
           {currentLevel && (
             <div className="ioc-goal">
+              <span style={{ marginRight: 8, color: '#9fb3c8' }}>Goal:</span>
               {currentLevel.outputs.map(o => (
                 <span key={o.id} className="ioc-goal-pill">
                   <span className={`ioc-dot ${o.target ? 't1' : 't0'}`} />
@@ -907,15 +1059,20 @@ export default function CircuitCanvas() {
             </div>
           )}
         </div>
+        <div className="ioc-center">
+          {/* hint message removed */}
+        </div>
         <div className="ioc-right">
           {currentLevel && (
             (() => {
               const idx = levelIds.indexOf(currentLevel.id);
               const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
               return (
-                <button className="ioc-next" disabled={!nextId} onClick={() => nextId && navigate(`/play/${nextId}`)}>
-                  Next ›
-                </button>
+                <>
+                  <button className="ioc-next" disabled={!nextId} onClick={() => nextId && navigate(`/play/${nextId}`)}>
+                    Next ›
+                  </button>
+                </>
               );
             })()
           )}
@@ -956,6 +1113,12 @@ export default function CircuitCanvas() {
         {renderGhostGate()}
         {gates.map(renderGate)}
       </svg>
+      {showTruthTable && (
+        <TruthTableModal
+          tables={buildComponentTruthTables()}
+          onClose={() => setTruthTableVisible(false)}
+        />
+      )}
     </div>
   );
 }

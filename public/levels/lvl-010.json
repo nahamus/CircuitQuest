@@ -1,0 +1,19 @@
+{
+  "id": "lvl-010",
+  "title": "Parity Check",
+  "description": "Compute odd parity (A ⊕ B ⊕ C). Also provide its complement.",
+  "grid": { "cols": 34, "rows": 20, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": false, "x": 1, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "inC", "label": "C", "initial": true,  "x": 1, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outP",  "label": "Parity",    "target": false, "x": 32, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "outNP", "label": "NotParity", "target": true,  "x": 32, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 0, "OR": 0, "NOT": 0, "BUF": 2, "XOR": 3, "XNOR": 2, "NAND": 0, "NOR": 0, "SPLIT": 3, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 10
+}
+
+
