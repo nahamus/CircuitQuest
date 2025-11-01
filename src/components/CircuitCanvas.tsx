@@ -78,28 +78,6 @@ export default function CircuitCanvas() {
       .catch(() => {});
   }, []);
 
-  // Compute IO bar metrics (center Y and height) responsive to viewport
-  const computeBarMetrics = useCallback((): { barY: number; barHeight: number; padding: number } | null => {
-    if (!currentLevel) return null;
-    const snap = ui.gridSnap;
-    // Measure overlay pixel height and convert to world units
-    let scaleY = 1, overlayPx = 64, paddingPx = 6;
-    const svg = svgRef.current;
-    const overlay = overlayRef.current;
-    if (svg) {
-      const vb = svg.viewBox.baseVal;
-      const rect = svg.getBoundingClientRect();
-      scaleY = rect.height / Math.max(vb.height, 1);
-    }
-    if (overlay) {
-      overlayPx = overlay.getBoundingClientRect().height;
-    }
-    const barHeight = Math.max(snap * 1.2, overlayPx / Math.max(scaleY, 0.0001));
-    const padding = Math.max(snap * 0.25, paddingPx / Math.max(scaleY, 0.0001));
-    const barY = (barHeight / 2) + padding * 0.5;
-    return { barY, barHeight, padding };
-  }, [currentLevel, ui.gridSnap]);
-
   
 
   // Auto-fit view when level loads
