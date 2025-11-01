@@ -13,27 +13,40 @@ export default function HelpModal({ onClose }: { onClose: () => void }) {
           <div className="help-grid">
             <div className="help-item">
               <div className="help-title">Goal</div>
-              <div className="help-text">Build logic circuits that make outputs match their targets.</div>
+              <div className="help-text">Make each output match its target value shown on the top bar.</div>
             </div>
             <div className="help-item">
-              <div className="help-title">Place</div>
-              <div className="help-text">Click a component on the left, then click on the canvas.</div>
+              <div className="help-title">Inputs / Outputs</div>
+              <div className="help-text">
+                Use the Inputs/Outputs panel on the left:
+                <ul>
+                  <li>Click an item to arm it, then click on the canvas to place.</li>
+                  <li>Inputs show 0/1; Outputs show a target (→0/→1).</li>
+                  <li>Delete returns them to the panel for reuse.</li>
+                </ul>
+              </div>
+            </div>
+            <div className="help-item">
+              <div className="help-title">Components</div>
+              <div className="help-text">
+                Choose gates from Components:
+                <ul>
+                  <li>Click a gate to arm, then click the canvas to place.</li>
+                  <li>Build with AND, OR, NOT, XOR, etc. to transform signals.</li>
+                </ul>
+              </div>
             </div>
             <div className="help-item">
               <div className="help-title">Wire</div>
-              <div className="help-text">Click an output (right dot), then an input (left dot). Double-click to snap.</div>
+              <div className="help-text">Click an output (right pin), then an input (left pin). Double‑click to snap.</div>
             </div>
             <div className="help-item">
               <div className="help-title">Edit</div>
-              <div className="help-text">Drag to move. Click to select. Press Delete to remove.</div>
+              <div className="help-text">Drag to move. Click to select. Press Delete to remove selected.</div>
             </div>
             <div className="help-item">
-              <div className="help-title">View</div>
-              <div className="help-text">Right-drag to pan. Ctrl/Cmd + wheel to zoom.</div>
-            </div>
-            <div className="help-item">
-              <div className="help-title">Run</div>
-              <div className="help-text">Click Run to test. Use Next to progress after success.</div>
+              <div className="help-title">Run & Reset</div>
+              <div className="help-text">Use Run and Reset on the right panel. On success, you’ll auto‑advance (or use Next on the top bar).</div>
             </div>
           </div>
         </div>

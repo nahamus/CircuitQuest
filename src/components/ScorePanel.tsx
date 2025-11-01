@@ -5,7 +5,7 @@ import type { Progress } from '../services/storage';
 import './ScorePanel.css';
 
 export default function ScorePanel() {
-  const { currentLevel } = useStore();
+  const { currentLevel, resetLevel, runSimulation, sim } = useStore();
   const currentGates = useStore((state) => 
     state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT').length
   );
@@ -36,6 +36,12 @@ export default function ScorePanel() {
           <div className="stat-label">Current</div>
           <div className="stat-value">{currentGates} gates, {currentWires} wires</div>
         </div>
+      </div>
+      <div className="side-actions">
+        <button className="side-btn danger" onClick={resetLevel}>↺ Reset</button>
+        <button className="side-btn primary" onClick={runSimulation} disabled={sim.running}>
+          {sim.running ? 'Running…' : '▶ Run'}
+        </button>
       </div>
     </div>
   );

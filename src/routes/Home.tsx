@@ -12,14 +12,12 @@ export default function Home() {
   useEffect(() => {
     fetchLevelIndex()
       .then(async (ids) => {
-        console.log('Level IDs loaded:', ids);
         // Strip .json extension from IDs if present
         const cleanIds = ids.map(id => id.replace(/\.json$/, ''));
         setLevels(cleanIds);
         setLoading(false);
       })
       .catch((error) => {
-        console.error('Failed to load levels:', error);
         setError(error instanceof Error ? error.message : 'Failed to load levels');
         setLoading(false);
       });

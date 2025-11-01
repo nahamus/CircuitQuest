@@ -43,6 +43,12 @@
 .ioc-dot.t0 { background: #3a3a4a; border-color: #2f2f3a; }
 .ioc-goal-label { text-transform: uppercase; letter-spacing: 0.3px; }
 .ioc-goal-val { opacity: 0.9; }
+
+.ioc-sim { margin-top: 6px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 8px; border: 1px solid transparent; background: rgba(0,0,0,0.2); }
+.ioc-sim.success { color: #00ff88; border-color: #00ce70; background: rgba(0,255,136,0.08); }
+.ioc-sim.error { color: #ff7a7a; border-color: #663232; background: rgba(255, 68, 68, 0.08); }
+.ioc-sim-icon { font-weight: 800; }
+.ioc-sim-details { color: #f0b6b6; }
 .ioc-next { background: #0bd3ff; border: none; color: #101116; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .ioc-next:disabled { opacity: 0.5; cursor: default; }
 

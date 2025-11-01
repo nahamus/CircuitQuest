@@ -64,6 +64,7 @@ export default function CircuitCanvas() {
     setArmedGateType,
     fitToView,
     currentLevel,
+    sim,
   } = useStore();
 
   // Load level ids for Next button
@@ -751,6 +752,28 @@ export default function CircuitCanvas() {
                   <span className="ioc-goal-val">{o.target ? '1' : '0'}</span>
                 </span>
               ))}
+            </div>
+          )}
+          {sim?.last && (
+            <div className={`ioc-sim ${sim.last.success ? 'success' : 'error'}`}>
+              {sim.last.success ? (
+                <>
+                  <span className="ioc-sim-icon">✓</span>
+                  <span>All outputs correct!</span>
+                </>
+              ) : (
+                <span className="ioc-sim-details">
+                  {sim.last.outputs && sim.last.outputs.length > 0
+                    ? sim.last.outputs
+                        .filter(o => o.value !== o.target)
+                        .map(o => {
+                          const label = currentLevel?.outputs.find(g => g.id === o.id)?.label || o.id;
+                          return `${label}: expected ${o.target ? '1' : '0'}, got ${o.value ? '1' : '0'}`;
+                        })
+                        .join(' • ')
+                    : 'Some outputs are incorrect.'}
+                </span>
+              )}
             </div>
           )}
         </div>

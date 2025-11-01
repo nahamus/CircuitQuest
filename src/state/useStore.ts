@@ -242,6 +242,7 @@ export const useStore = create<StoreState>((set, get) => ({
       wires: state.wires.filter(w => w.fromGateId !== gateId && w.toGateId !== gateId),
       dockedIO: state.dockedIO.includes(gateId) ? state.dockedIO : [...state.dockedIO, gateId],
       selection: {},
+      wireStart: undefined,
     });
   },
   
@@ -394,12 +395,14 @@ export const useStore = create<StoreState>((set, get) => ({
       set({
         gates: state.gates.filter(g => g.id !== gateId),
         wires: state.wires.filter(w => w.fromGateId !== gateId && w.toGateId !== gateId),
-        selection: {}
+        selection: {},
+        wireStart: undefined,
       });
     } else if (state.selection.wireId) {
       set({
         wires: state.wires.filter(w => w.id !== state.selection.wireId),
         selection: {},
+        wireStart: undefined,
       });
     }
   },

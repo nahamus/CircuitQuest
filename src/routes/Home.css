@@ -4,26 +4,50 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #101116;
+  background: radial-gradient(1200px 800px at 20% 10%, rgba(11, 211, 255, 0.05), transparent 55%),
+              radial-gradient(900px 600px at 80% 90%, rgba(0, 255, 136, 0.04), transparent 55%),
+              #101116;
+  position: relative;
+  overflow: hidden;
 }
 
 .home-content {
   max-width: 700px;
-  padding: 40px;
+  padding: 40px 48px;
   text-align: center;
+  position: relative;
 }
 
 .home h1 {
   font-size: 48px;
-  font-weight: 700;
+  font-weight: 800;
   color: #0bd3ff;
   margin-bottom: 16px;
+  text-shadow: 0 0 12px rgba(11, 211, 255, 0.18);
+  letter-spacing: 0.3px;
 }
 
 .subtitle {
   font-size: 18px;
-  color: #888;
+  color: #9fb3c8;
   margin-bottom: 40px;
+}
+
+.home .primary {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 10px 28px rgba(11, 211, 255, 0.26);
+}
+
+.home .primary:hover {
+  transform: translateY(-0.5px) scale(1.005);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    0 12px 28px rgba(11, 211, 255, 0.22);
 }
 
 .level-list {
