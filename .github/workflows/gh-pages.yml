@@ -17,15 +17,15 @@ jobs:
         with: { node-version: 20 }
       - run: npm install
       - run: npm run build
-      - name: Upload Pages artifact (only used on master deploy)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      - name: Upload Pages artifact (used on master/develop deploy)
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop') }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop') }}
     steps:
       - uses: actions/deploy-pages@v4
 
