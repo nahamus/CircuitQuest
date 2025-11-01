@@ -34,7 +34,7 @@ interface StoreState {
   setArmedIO: (gateId: string | null) => void;
   placeIO: (gateId: string, x: number, y: number) => void;
   returnIO: (gateId: string) => void;
-  startWire: (gateId: string, portIndex: number, x: number, y: number) => void;
+  startWire: (gateId: string, portIndex: number) => void;
   completeWire: (gateId: string, portIndex: number) => void;
   cancelWire: () => void;
   deleteSelection: () => void;
@@ -294,7 +294,7 @@ export const useStore = create<StoreState>((set, get) => ({
     });
   },
   
-  startWire: (gateId: string, portIndex: number, x: number, y: number) => {
+  startWire: (gateId: string, portIndex: number) => {
     const state = get();
     const gate = state.gates.find(g => g.id === gateId);
     if (!gate) return;

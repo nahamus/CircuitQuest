@@ -1,4 +1,3 @@
-import React from 'react';
 import './HelpModal.css';
 
 export default function HelpModal({ onClose }: { onClose: () => void }) {
