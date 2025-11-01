@@ -30,13 +30,14 @@
   padding: 8px 16px 10px 16px;
   z-index: 4;
   pointer-events: none;
+  overflow: hidden; /* prevent content from spilling below the bar */
 }
-.io-overlay-controls .ioc-left { pointer-events: none; }
-.io-overlay-controls .ioc-center { pointer-events: none; }
+.io-overlay-controls .ioc-left { pointer-events: none; overflow: hidden; }
+.io-overlay-controls .ioc-center { pointer-events: none; overflow: hidden; }
 .io-overlay-controls .ioc-right { pointer-events: auto; }
-.ioc-title { color: #e0e0e0; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
-.ioc-sub { color: #9fb3c8; font-size: 12px; margin-top: 2px; opacity: 0.95; }
-.ioc-goal { display: flex; gap: 8px; }
+.ioc-title { color: #e0e0e0; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ioc-sub { color: #9fb3c8; font-size: 12px; margin-top: 2px; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ioc-goal { display: flex; gap: 8px; overflow: hidden; white-space: nowrap; }
 .ioc-goal-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #d0e6f6; border: 1px solid #2e4b59; background: rgba(11,211,255,0.06); padding: 2px 8px; border-radius: 999px; }
 .ioc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid #2e4b59; }
 .ioc-dot.t1 { background: #00ff88; border-color: #00ce70; }
@@ -44,13 +45,17 @@
 .ioc-goal-label { text-transform: uppercase; letter-spacing: 0.3px; }
 .ioc-goal-val { opacity: 0.9; }
 
-.ioc-sim { margin-top: 6px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 8px; border: 1px solid transparent; background: rgba(0,0,0,0.2); }
+.ioc-sim { margin-top: 6px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 8px; border: 1px solid transparent; background: rgba(0,0,0,0.2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ioc-sim.success { color: #00ff88; border-color: #00ce70; background: rgba(0,255,136,0.08); }
 .ioc-sim.error { color: #ff7a7a; border-color: #663232; background: rgba(255, 68, 68, 0.08); }
 .ioc-sim-icon { font-weight: 800; }
 .ioc-sim-details { color: #f0b6b6; }
+.ioc-hint { margin-top: 6px; font-size: 12px; color: #cfe6f5; background: rgba(11,211,255,0.08); border: 1px solid #2e4b59; padding: 2px 8px; border-radius: 8px; display: inline-block; }
 .ioc-next { background: #0bd3ff; border: none; color: #101116; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .ioc-next:disabled { opacity: 0.5; cursor: default; }
+.ioc-hint-btn { margin-right: 8px; background: #1a2a36; color: #cfe6f5; border: 1px solid #2e4b59; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.ioc-hint-btn:hover { background: #233848; border-color: #3a6a7d; }
+.ioc-hint-btn:disabled { opacity: 0.5; cursor: default; }
 
 .circuit-canvas {
   width: 100%;

@@ -1,0 +1,19 @@
+{
+  "id": "lvl-009",
+  "title": "Full Adder",
+  "description": "Build a full-adder: Sum = A XOR B XOR Cin, Carry = (A AND B) OR (Cin AND (A XOR B)).",
+  "grid": { "cols": 34, "rows": 20, "snap": 32 },
+  "inputs": [
+    { "id": "inA",   "label": "A",   "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inB",   "label": "B",   "initial": true,  "x": 1, "y": 12, "inputs": [], "outputs": [] },
+    { "id": "inCin", "label": "Cin", "initial": false, "x": 1, "y": 16, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outS", "label": "Sum",   "target": false, "x": 32, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "outC", "label": "Carry", "target": true,  "x": 32, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 3, "OR": 1, "NOT": 0, "BUF": 2, "XOR": 3, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 3, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 12
+}
+
+

@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   // IMPORTANT: replace with your repo name for GitHub Pages
-  base: '/circuitquest/',
+  base: '/CircuitQuest/',
   plugins: [
     react(),
     VitePWA({
@@ -17,7 +17,8 @@ export default defineConfig({
       manifest: {
         name: 'Circuit Quest',
         short_name: 'CircuitQuest',
-        start_url: '.',
+        start_url: '/CircuitQuest/',
+        scope: '/CircuitQuest/',
         display: 'standalone',
         background_color: '#101116',
         theme_color: '#0bd3ff',

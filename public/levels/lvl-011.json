@@ -1,0 +1,18 @@
+{
+  "id": "lvl-011",
+  "title": "2:1 Multiplexer",
+  "description": "Build Y = (~S & D0) | (S & D1).",
+  "grid": { "cols": 34, "rows": 20, "snap": 32 },
+  "inputs": [
+    { "id": "inD0", "label": "D0", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inD1", "label": "D1", "initial": false, "x": 1, "y": 12, "inputs": [], "outputs": [] },
+    { "id": "inS",  "label": "S",  "initial": false, "x": 1, "y": 16, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outY", "label": "Y", "target": true, "x": 32, "y": 10, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 3, "OR": 2, "NOT": 1, "BUF": 2, "XOR": 0, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 3, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 10
+}
+
+

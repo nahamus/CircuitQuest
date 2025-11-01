@@ -34,21 +34,6 @@
 .help-title { font-weight: 700; color: #cfe6f5; font-size: 12px; margin-bottom: 4px; }
 .help-text { color: #b5bfd1; font-size: 12px; line-height: 1.4; }
 
-.help-fab {
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #0bd3ff;
-  border: none;
-  color: #101116;
-  font-weight: 800;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(11, 211, 255, 0.3);
-}
-.help-fab:hover { filter: brightness(1.1); }
+/* floating help-fab removed; help button lives inside right sidebar as .help-inline */
 
 

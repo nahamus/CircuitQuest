@@ -45,6 +45,10 @@ export interface Level {
   wires?: Wire[];
   maxComponents?: number;
   hint?: string;
+  truthTable?: {
+    headers: string[]; // e.g., ['A','B','F']
+    rows: (0|1|'-')[][]; // array of rows matching headers length
+  };
 }
 
 export interface SimResult {

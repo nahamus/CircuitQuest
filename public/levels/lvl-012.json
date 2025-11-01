@@ -1,0 +1,18 @@
+{
+  "id": "lvl-012",
+  "title": "Comparator",
+  "description": "Outputs: EQ = (A XNOR B), GT = A & ~B.",
+  "grid": { "cols": 34, "rows": 20, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": false, "x": 1, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outEQ", "label": "EQ", "target": false, "x": 32, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "outGT", "label": "GT", "target": true,  "x": 32, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 2, "OR": 0, "NOT": 1, "BUF": 1, "XOR": 0, "XNOR": 1, "NAND": 0, "NOR": 0, "SPLIT": 2, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 9
+}
+
+
