@@ -12,6 +12,9 @@ interface StoreState {
   wires: Wire[];
   selection: { gateId?: string; wireId?: string };
   sim: { last?: SimResult; running: boolean };
+  // Hints removed; keep truth table toggle only
+  showTruthTable: boolean;
+  showHelp: boolean;
   ui: {
     zoom: number;
     offsetX: number;
@@ -19,6 +22,7 @@ interface StoreState {
     gridSnap: number;
     theme: 'dark' | 'light';
     showHints: boolean;
+    showLivePath: boolean;
   };
   wireStart?: { gateId: string; portIndex: number; x: number; y: number };
   armedGateType?: GateType | null;
@@ -48,6 +52,9 @@ interface StoreState {
   updateSettings: (settings: Partial<Settings>) => Promise<void>;
   setArmedGateType: (type: GateType | null) => void;
   fitToView: () => void;
+  setTruthTableVisible: (visible: boolean) => void;
+  setShowLivePath: (enabled: boolean) => void;
+  setShowHelp: (visible: boolean) => void;
 }
 
 function calculateScore(level: Level, gates: Gate[], wires: Wire[]): number {
@@ -76,6 +83,8 @@ export const useStore = create<StoreState>((set, get) => ({
   wires: [],
   selection: {},
   sim: { running: false },
+  showTruthTable: false,
+  showHelp: false,
   ui: {
     zoom: 1,
     offsetX: 0,
@@ -83,6 +92,7 @@ export const useStore = create<StoreState>((set, get) => ({
     gridSnap: 32,
     theme: 'dark',
     showHints: false,
+    showLivePath: false,
   },
   armedIOId: null,
   dockedIO: [],
@@ -102,6 +112,8 @@ export const useStore = create<StoreState>((set, get) => ({
       wires: level.wires || [],
       selection: {},
       sim: { running: false },
+      showTruthTable: false,
+      showHelp: false,
       ui: {
         zoom: 1,
         offsetX: 0,
@@ -109,6 +121,7 @@ export const useStore = create<StoreState>((set, get) => ({
         gridSnap: level.grid.snap,
         theme: settings?.theme || 'dark',
         showHints: settings?.showHints || false,
+        showLivePath: false,
       },
       wireStart: undefined,
       armedGateType: null,
@@ -467,6 +480,8 @@ export const useStore = create<StoreState>((set, get) => ({
       sim: { running: false },
       wireStart: undefined,
       dockedIO: [...(level.inputs||[]), ...(level.outputs||[])].map(g => g.id),
+      showTruthTable: false,
+      showHelp: false,
     });
   },
   
@@ -567,6 +582,18 @@ export const useStore = create<StoreState>((set, get) => ({
         offsetY,
       },
     });
+  },
+
+  setTruthTableVisible: (visible: boolean) => {
+    set({ showTruthTable: visible });
+  },
+
+  setShowLivePath: (enabled: boolean) => {
+    set({ ui: { ...get().ui, showLivePath: enabled } });
+  },
+
+  setShowHelp: (visible: boolean) => {
+    set({ showHelp: visible });
   },
 }));
 

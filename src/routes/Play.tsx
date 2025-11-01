@@ -15,9 +15,8 @@ import './Play.css';
 export default function Play() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { loadLevel, sim, currentLevel } = useStore();
+  const { loadLevel, sim, currentLevel, showHelp, setShowHelp } = useStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
-  const [showHelp, setShowHelp] = useState(false);
   const [levelIds, setLevelIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -73,7 +72,6 @@ export default function Play() {
         <CircuitCanvas />
         <ScorePanel />
       </div>
-      <button className="help-fab" title="How to Play" onClick={() => setShowHelp(true)}>?</button>
       {showHelp && (
         <HelpModal onClose={() => setShowHelp(false)} />
       )}

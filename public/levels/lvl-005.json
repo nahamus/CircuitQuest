@@ -9,7 +9,7 @@
     { "id": "inC", "label": "C", "initial": false,  "x": 1, "y": 15, "inputs": [], "outputs": [] }
   ],
   "outputs": [
-    { "id": "out1", "label": "F",   "target": true,  "x": 32, "y": 10,  "inputs": [], "outputs": [] }
+    { "id": "out1", "label": "F",   "target": false,  "x": 32, "y": 10,  "inputs": [], "outputs": [] }
   ],
   "palette": { "AND": 4, "OR": 3, "NOT": 0, "BUF": 3, "XOR": 0, "SPLIT": 3, "INPUT": 0, "OUTPUT": 0 },
   "maxComponents": 10

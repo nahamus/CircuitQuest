@@ -8,8 +8,8 @@
     { "id": "inB", "label": "B", "initial": false,  "x": 1, "y": 12, "inputs": [], "outputs": [] }
   ],
   "outputs": [
-    { "id": "outS", "label": "Sum",   "target": true,  "x": 30, "y": 6,  "inputs": [], "outputs": [] },
-    { "id": "outC", "label": "Carry", "target": true,  "x": 30, "y": 12, "inputs": [], "outputs": [] }
+    { "id": "outS", "label": "Sum",   "target": false,  "x": 30, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "outC", "label": "Carry", "target": false,  "x": 30, "y": 12, "inputs": [], "outputs": [] }
   ],
   "palette": { "AND": 2, "OR": 0, "NOT": 0, "BUF": 2, "XOR": 2, "SPLIT": 2, "INPUT": 0, "OUTPUT": 0 },
   "maxComponents": 8
