@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
-import { fetchLevelIndex } from '../services/levels';
+import { fetchLevelIndex, fetchPacks } from '../services/levels';
 import TopBar from '../components/TopBar';
 import HelpModal from '../components/HelpModal';
 import PalettePanel from '../components/PalettePanel';
 import CircuitCanvas from '../components/CircuitCanvas';
 import ScorePanel from '../components/ScorePanel';
-// Objective panel removed from sidebar
 import IOTrayPanel from '../components/IOTrayPanel';
+// Objective panel removed from sidebar
 import Toast from '../components/Toast';
 import './Play.css';
 
 export default function Play() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { loadLevel, sim, currentLevel, showHelp, setShowHelp } = useStore();
+  const { loadLevel, sim, currentLevel, showHelp, setShowHelp, currentPack } = useStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [levelIds, setLevelIds] = useState<string[]>([]);
 
@@ -30,10 +30,22 @@ export default function Play() {
 
   // Load level index for progression
   useEffect(() => {
-    fetchLevelIndex()
-      .then(ids => setLevelIds(ids.map(s => s.replace(/\.json$/, ''))))
-      .catch(err => console.error('Failed to fetch level index', err));
-  }, []);
+    const loadLists = async () => {
+      try {
+        if (currentPack) {
+          const packs = await fetchPacks();
+          const list = packs[currentPack] || [];
+          setLevelIds(list.map(s => s.replace(/\.json$/, '')));
+        } else {
+          const ids = await fetchLevelIndex();
+          setLevelIds(ids.map(s => s.replace(/\.json$/, '')));
+        }
+      } catch (err) {
+        console.error('Failed to fetch lists', err);
+      }
+    };
+    loadLists();
+  }, [currentPack]);
 
   useEffect(() => {
     if (!sim.last) return;

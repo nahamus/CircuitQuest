@@ -68,6 +68,7 @@ export default function CircuitCanvas() {
     sim,
     showTruthTable,
     setTruthTableVisible,
+    hintSubIndex,
   } = useStore();
 
   // Load level ids for Next button
@@ -99,29 +100,7 @@ export default function CircuitCanvas() {
     return { barY, barHeight, padding };
   }, [currentLevel, ui.gridSnap]);
 
-  // Keep INPUT/OUTPUT vertically centered in the bar on resize/zoom/gate changes
-  useEffect(() => {
-    const metrics = computeBarMetrics();
-    if (!metrics) return;
-    const epsilon = 0.5;
-    // Only adjust IO vertical alignment on zoom/resize, not on every gate move
-    const align = () => {
-      const m = computeBarMetrics();
-      if (!m) return;
-      const y = m.barY;
-      const ios = (gates || []).filter(g => g.type === 'INPUT' || g.type === 'OUTPUT');
-      ios.forEach(g => {
-        if (Math.abs(g.y - y) > epsilon) moveGate(g.id, g.x, y);
-      });
-    };
-    align();
-    // Re-center on window resize
-    const onResize = () => {
-      align();
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [computeBarMetrics, moveGate, ui.zoom]);
+  
 
   // Auto-fit view when level loads
   useEffect(() => {
@@ -329,9 +308,9 @@ export default function CircuitCanvas() {
     const sx = gate.x;
     const sy = gate.y;
     const snap = ui.gridSnap;
-    const width = snap * 0.8;
-    const height = snap * 0.8;
-    const portSize = snap * 0.15;
+    const width = snap * 1.05;
+    const height = snap * 1.05;
+    const portSize = snap * 0.2;
     const isSelected = selection.gateId === gate.id;
 
     const hasDiagram =
@@ -575,7 +554,7 @@ export default function CircuitCanvas() {
                 r={portSize * 1.8}
                 onMouseDown={(e) => {
                   e.stopPropagation();
-                  const portWorldX = gate.x + (width / 2 + portSize / 2);
+                  const portWorldX = gate.x + (width / 2 + portSize / 2) + (portSize * 0.6);
                   const portWorldY = gate.y + portY;
                   startWire(gate.id, port.index);
                   setMousePos({ x: portWorldX, y: portWorldY });
@@ -583,7 +562,7 @@ export default function CircuitCanvas() {
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  const portWorldX = gate.x + (width / 2 + portSize / 2);
+                  const portWorldX = gate.x + (width / 2 + portSize / 2) + (portSize * 0.6);
                   const portWorldY = gate.y + portY;
                   startWire(gate.id, port.index);
                   setMousePos({ x: portWorldX, y: portWorldY });
@@ -591,7 +570,7 @@ export default function CircuitCanvas() {
                 }}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
-                  const portWorldX = gate.x + (width / 2 + portSize / 2);
+                  const portWorldX = gate.x + (width / 2 + portSize / 2) + (portSize * 0.6);
                   const portWorldY = gate.y + portY;
                   startWire(gate.id, port.index);
                   setMousePos({ x: portWorldX, y: portWorldY });
@@ -692,8 +671,8 @@ export default function CircuitCanvas() {
     // Snap to grid for ghost gate placement
     const [sx, sy] = snapToGrid(mousePos.x, mousePos.y);
     const snap = ui.gridSnap;
-    const width = snap * 0.8;
-    const height = snap * 0.8;
+    const width = snap * 1.05;
+    const height = snap * 1.05;
     const stroke = GATE_COLORS[armedGateType];
     const sw = 2;
 
@@ -861,6 +840,7 @@ export default function CircuitCanvas() {
     // No visual bar in SVG; we use the HTML overlay for visuals
     return null;
   };
+
 
   if (!currentLevel) return null;
 
@@ -1037,7 +1017,7 @@ export default function CircuitCanvas() {
   }, [currentLevel]);
 
   return (
-    <div ref={containerRef} className="circuit-canvas-container">
+    <div ref={containerRef} className={clsx('circuit-canvas-container', sim.running && 'sim-running', sim.last?.success && 'sim-success')}>
       {/* Responsive overlay bar (HTML) for clean visuals */}
       <div ref={overlayRef} className="io-overlay" />
       <div className="io-overlay-controls">
@@ -1082,7 +1062,11 @@ export default function CircuitCanvas() {
           )}
         </div>
         <div className="ioc-center">
-          {/* hint message removed */}
+          {currentLevel?.hints?.subGoals && hintSubIndex > 0 && (
+            <div className="ioc-hint" title="Sub-goal">
+              💡 {currentLevel.hints.subGoals[hintSubIndex - 1]}
+            </div>
+          )}
         </div>
         <div className="ioc-right">
           {currentLevel && (

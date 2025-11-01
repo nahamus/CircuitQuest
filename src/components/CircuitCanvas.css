@@ -5,6 +5,14 @@
   background: #101116;
 }
 
+.sim-running .wire { filter: drop-shadow(0 0 3px rgba(18,219,255,0.6)); opacity: 0.95; }
+.sim-success .bulb-ring { animation: ringPulse 900ms ease-out 1; }
+@keyframes ringPulse {
+  0% { opacity: 0; transform: scale(0.8); }
+  40% { opacity: 0.9; transform: scale(1.05); }
+  100% { opacity: 0.65; transform: scale(1.0); }
+}
+
 .io-overlay {
   position: absolute;
   top: 0;
@@ -50,12 +58,35 @@
 .ioc-sim.error { color: #ff7a7a; border-color: #663232; background: rgba(255, 68, 68, 0.08); }
 .ioc-sim-icon { font-weight: 800; }
 .ioc-sim-details { color: #f0b6b6; }
+.sim-success .ioc-sim.success { animation: simPulse 1200ms ease-out 1; }
+@keyframes simPulse {
+  0% { transform: scale(0.98); box-shadow: 0 0 0 rgba(0,255,136,0.0); }
+  40% { transform: scale(1.02); box-shadow: 0 0 12px rgba(0,255,136,0.25); }
+  100% { transform: scale(1.0); box-shadow: 0 0 0 rgba(0,255,136,0.0); }
+}
 .ioc-hint { margin-top: 6px; font-size: 12px; color: #cfe6f5; background: rgba(11,211,255,0.08); border: 1px solid #2e4b59; padding: 2px 8px; border-radius: 8px; display: inline-block; }
 .ioc-next { background: #0bd3ff; border: none; color: #101116; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .ioc-next:disabled { opacity: 0.5; cursor: default; }
 .ioc-hint-btn { margin-right: 8px; background: #1a2a36; color: #cfe6f5; border: 1px solid #2e4b59; padding: 6px 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 .ioc-hint-btn:hover { background: #233848; border-color: #3a6a7d; }
 .ioc-hint-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* IO docks on canvas */
+.io-docks .io-dock-tile { cursor: pointer; }
+.io-docks .io-dock-tile:hover rect { stroke: #3a5a6d; }
+.io-docks .io-dock-tile.armed rect { stroke: #12dbff; box-shadow: 0 0 8px rgba(18,219,255,0.4); }
+
+/* Engraved labels for IO sections */
+.io-engrave {
+  fill: #2a3a4a;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  paint-order: stroke;
+  stroke: rgba(0,0,0,0.4);
+  stroke-width: 2px;
+  opacity: 0.8;
+}
 
 .circuit-canvas {
   width: 100%;

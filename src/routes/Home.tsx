@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchLevelIndex } from '../services/levels';
+import { fetchLevelIndex, fetchPacks } from '../services/levels';
+import { useStore } from '../state/useStore';
 import './Home.css';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { setCurrentPack } = useStore();
   const [levels, setLevels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [packs, setPacks] = useState<Record<string, string[]> | null>(null);
 
   useEffect(() => {
     fetchLevelIndex()
@@ -21,6 +24,7 @@ export default function Home() {
         setError(error instanceof Error ? error.message : 'Failed to load levels');
         setLoading(false);
       });
+    fetchPacks().then(setPacks).catch(() => setPacks(null));
   }, []);
 
   return (
@@ -45,6 +49,40 @@ export default function Home() {
             Play
           </button>
         )}
+        {packs && (() => {
+          const order = ['Intro','Arithmetic','Selectors','Equivalence','Logic Only','All'];
+          const keys = order.filter(k => packs[k]).concat(Object.keys(packs).filter(k => !order.includes(k)));
+          const iconFor = (pack: string) => pack === 'Intro' ? '⭐' : pack === 'Arithmetic' ? '➕' : pack === 'Selectors' ? '🔀' : pack === 'Equivalence' ? '≡' : pack === 'Logic Only' ? '⚙️' : '🎯';
+          return (
+            <div className="packs">
+              <div className="packs-head">
+                <h2>Challenge Packs</h2>
+                <p>Select a pack to start a themed set of challenges.</p>
+              </div>
+              <div className="packs-grid">
+                {keys.map((pack) => {
+                  const count = packs[pack]?.length || 0;
+                  return (
+                    <button
+                      key={pack}
+                      className="pack-card"
+                      onClick={() => {
+                        setCurrentPack(pack === 'All' ? undefined : pack);
+                        const first = (packs[pack][0] || '').replace(/\.json$/, '');
+                        if (first) navigate(`/play/${first}`);
+                      }}
+                      title={`${count} challenges`}
+                    >
+                      <div className="pack-emoji" aria-hidden>{iconFor(pack)}</div>
+                      <div className="pack-title">{pack}</div>
+                      <div className="pack-meta">{count} {count === 1 ? 'challenge' : 'challenges'}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

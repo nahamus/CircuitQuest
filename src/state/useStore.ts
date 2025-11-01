@@ -15,6 +15,8 @@ interface StoreState {
   // Hints removed; keep truth table toggle only
   showTruthTable: boolean;
   showHelp: boolean;
+  currentPack?: string;
+  hintSubIndex: number;
   ui: {
     zoom: number;
     offsetX: number;
@@ -55,6 +57,8 @@ interface StoreState {
   setTruthTableVisible: (visible: boolean) => void;
   setShowLivePath: (enabled: boolean) => void;
   setShowHelp: (visible: boolean) => void;
+  setCurrentPack: (pack?: string) => void;
+  revealNextSubGoal: () => void;
 }
 
 function calculateScore(level: Level, gates: Gate[], wires: Wire[]): number {
@@ -85,6 +89,8 @@ export const useStore = create<StoreState>((set, get) => ({
   sim: { running: false },
   showTruthTable: false,
   showHelp: false,
+  currentPack: undefined,
+  hintSubIndex: 0,
   ui: {
     zoom: 1,
     offsetX: 0,
@@ -248,14 +254,13 @@ export const useStore = create<StoreState>((set, get) => ({
 
   returnIO: (gateId: string) => {
     const state = get();
-    const level = state.currentLevel;
-    if (!level) return;
+    if (!state.currentLevel) return;
     set({
       gates: state.gates.filter(g => g.id !== gateId),
       wires: state.wires.filter(w => w.fromGateId !== gateId && w.toGateId !== gateId),
-      dockedIO: state.dockedIO.includes(gateId) ? state.dockedIO : [...state.dockedIO, gateId],
       selection: {},
       wireStart: undefined,
+      dockedIO: [...state.dockedIO, gateId],
     });
   },
   
@@ -264,7 +269,8 @@ export const useStore = create<StoreState>((set, get) => ({
     const snap = state.ui.gridSnap;
     const gateWidth = snap * 0.8;
     const gateHeight = snap * 0.8;
-    const portSize = snap * 0.15;
+    const portSize = snap * 0.2; // match render
+    const ringRadius = portSize * 0.6; // match render ring size
     
     // Helper function to calculate port position (matching renderGate)
     const getPortPosition = (gateX: number, gateY: number, portIndex: number, portCount: number, isInput: boolean) => {
@@ -272,8 +278,9 @@ export const useStore = create<StoreState>((set, get) => ({
       const centerX = isInput 
         ? gateX - gateWidth / 2 - portSize / 2
         : gateX + gateWidth / 2 + portSize / 2;
-      // Attach wires to the exact center of the pin for clean vertical alignment
-      return { x: centerX, y: centerY };
+      // Attach wires to the visible edge of the pin ring
+      const edgeX = isInput ? (centerX - ringRadius) : (centerX + ringRadius);
+      return { x: edgeX, y: centerY };
     };
     
     // First, update the gates array with the new position
@@ -316,11 +323,13 @@ export const useStore = create<StoreState>((set, get) => ({
     const snap = state.ui.gridSnap;
     const gateWidth = snap * 0.8;
     const gateHeight = snap * 0.8;
-    const portSize = snap * 0.15;
+    const portSize = snap * 0.2; // match render
+    const ringRadius = portSize * 0.6;
     
     const centerY = gate.y + ((port.index + 1) / (gate.outputs.length + 1)) * gateHeight - gateHeight / 2;
     const centerX = gate.x + gateWidth / 2 + portSize / 2;
-    set({ wireStart: { gateId, portIndex, x: centerX, y: centerY } });
+    const startX = centerX + ringRadius; // edge on right side
+    set({ wireStart: { gateId, portIndex, x: startX, y: centerY } });
   },
   
   completeWire: (toGateId: string, toPortIndex: number) => {
@@ -356,13 +365,16 @@ export const useStore = create<StoreState>((set, get) => ({
     const snap = state.ui.gridSnap;
     const gateWidth = snap * 0.8;
     const gateHeight = snap * 0.8;
-    const portSize = snap * 0.15;
+    const portSize = snap * 0.2; // match render
+    const ringRadius = portSize * 0.6;
     
     // Calculate port positions matching renderGate
     const fromPortY = fromGate.y + ((fromPort.index + 1) / (fromGate.outputs.length + 1)) * gateHeight - gateHeight / 2;
-    const fromPortX = fromGate.x + gateWidth / 2 + portSize / 2; // center of output pin
+    const fromCenterX = fromGate.x + gateWidth / 2 + portSize / 2;
+    const fromPortX = fromCenterX + ringRadius; // right edge of output pin ring
     const toPortY = toGate.y + ((toPort.index + 1) / (toGate.inputs.length + 1)) * gateHeight - gateHeight / 2;
-    const toPortX = toGate.x - gateWidth / 2 - portSize / 2; // center of input pin
+    const toCenterX = toGate.x - gateWidth / 2 - portSize / 2;
+    const toPortX = toCenterX - ringRadius; // left edge of input pin ring
     
     const wireId = `wire_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const fromX = fromPortX;
@@ -589,5 +601,18 @@ export const useStore = create<StoreState>((set, get) => ({
   setShowHelp: (visible: boolean) => {
     set({ showHelp: visible });
   },
+
+  setCurrentPack: (pack?: string) => {
+    set({ currentPack: pack });
+  },
+
+  revealNextSubGoal: () => {
+    const state = get();
+    const level = state.currentLevel;
+    if (!level?.hints?.subGoals || level.hints.subGoals.length === 0) return;
+    const next = Math.min(state.hintSubIndex + 1, level.hints.subGoals.length);
+    set({ hintSubIndex: next });
+  },
+
 }));
 

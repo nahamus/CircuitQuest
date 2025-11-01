@@ -1,0 +1,13 @@
+{
+  "All": [
+    "lvl-001.json","lvl-002.json","lvl-003.json","lvl-004.json",
+    "lvl-005.json","lvl-006.json","lvl-007.json","lvl-008.json",
+    "lvl-009.json","lvl-010.json","lvl-011.json","lvl-012.json"
+  ],
+  "Intro": ["lvl-001.json","lvl-002.json","lvl-003.json"],
+  "Arithmetic": ["lvl-004.json","lvl-009.json"],
+  "Selectors": ["lvl-011.json"],
+  "Equivalence": ["lvl-008.json","lvl-010.json","lvl-012.json"],
+  "Logic Only": ["lvl-006.json","lvl-007.json"]
+}
+

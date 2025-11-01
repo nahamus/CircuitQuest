@@ -45,3 +45,15 @@ export async function fetchLevel(id: string): Promise<Level> {
   return data;
 }
 
+export async function fetchPacks(): Promise<Record<string, string[]>> {
+  try {
+    const res = await fetch(`${BASE_URL}levels/packs.json`);
+    if (!res.ok) throw new Error(`Failed to load packs: ${res.status} ${res.statusText}`);
+    const data = await res.json();
+    return data as Record<string, string[]>;
+  } catch (e) {
+    console.error('Error fetching packs:', e);
+    return { All: [] };
+  }
+}
+
