@@ -1,0 +1,26 @@
+{
+  "id": "lvl-018",
+  "title": "4→2 Priority Encoder",
+  "description": "Build a 4-to-2 priority encoder (I3 highest). For I2=1 and I1=I0=1, output Y=10.",
+  "grid": { "cols": 36, "rows": 22, "snap": 32 },
+  "inputs": [
+    { "id": "inI3", "label": "I3", "initial": false, "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inI2", "label": "I2", "initial": true,  "x": 1, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "inI1", "label": "I1", "initial": true,  "x": 1, "y": 14, "inputs": [], "outputs": [] },
+    { "id": "inI0", "label": "I0", "initial": true,  "x": 1, "y": 18, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outY1", "label": "Y1", "target": true,  "x": 34, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "outY0", "label": "Y0", "target": false, "x": 34, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 4, "OR": 3, "NOT": 2, "BUF": 2, "XOR": 0, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 5, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 14,
+  "hints": {
+    "subGoals": [
+      "Y1 = I3 ∨ I2",
+      "Y0 = I3 ∨ (¬I2 ∧ I1)"
+    ]
+  }
+}
+
+

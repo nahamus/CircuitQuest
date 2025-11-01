@@ -161,7 +161,7 @@ npm run build
 ## Contributing
 
 - Use clear, descriptive names for gates, ports, and actions.
-- Keep symbols consistent between palette icons, ghost preview, and on‑canvas gates.
+- Keep symbols consistent between palette icons and on‑canvas gates.
 - Prefer small, focused edits and test interactions (place → wire → run → reset).
 
 ---

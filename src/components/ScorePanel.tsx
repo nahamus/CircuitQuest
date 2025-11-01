@@ -5,7 +5,7 @@ import type { Progress } from '../services/storage';
 import './ScorePanel.css';
 
 export default function ScorePanel() {
-  const { currentLevel, resetLevel, runSimulation, sim, ui, setShowLivePath, setTruthTableVisible, setShowHelp } = useStore();
+  const { currentLevel, resetLevel, runSimulation, sim, ui, setShowLivePath, setTruthTableVisible, setShowHelp, revealNextSubGoal } = useStore();
   const currentGates = useStore((state) => 
     state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT').length
   );
@@ -56,6 +56,15 @@ export default function ScorePanel() {
           title="Open truth table for components"
         >
           Truth Table
+        </button>
+        <div className="side-divider" />
+        <button
+          className="side-btn"
+          onClick={() => revealNextSubGoal()}
+          title="Reveal next sub-goal hint"
+          disabled={!currentLevel?.hints?.subGoals || currentLevel.hints.subGoals.length === 0}
+        >
+          Hint: Sub-goal
         </button>
         <div className="side-divider" />
         <button

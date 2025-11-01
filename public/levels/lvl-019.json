@@ -1,0 +1,27 @@
+{
+  "id": "lvl-019",
+  "title": "3-bit Binary → Gray",
+  "description": "Convert A2A1A0 (binary) to Gray code G2G1G0.",
+  "grid": { "cols": 36, "rows": 22, "snap": 32 },
+  "inputs": [
+    { "id": "inA2", "label": "A2", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inA1", "label": "A1", "initial": false, "x": 1, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "inA0", "label": "A0", "initial": true,  "x": 1, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outG2", "label": "G2", "target": true,  "x": 34, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "outG1", "label": "G1", "target": true,  "x": 34, "y": 12, "inputs": [], "outputs": [] },
+    { "id": "outG0", "label": "G0", "target": true,  "x": 34, "y": 16, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 0, "OR": 0, "NOT": 0, "BUF": 2, "XOR": 3, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 4, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 10,
+  "hints": {
+    "subGoals": [
+      "G2 = A2",
+      "G1 = A2 XOR A1",
+      "G0 = A1 XOR A0"
+    ]
+  }
+}
+
+

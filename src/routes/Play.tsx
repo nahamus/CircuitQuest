@@ -1,28 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
-import { fetchLevelIndex } from '../services/levels';
+import { fetchLevelIndex, fetchPacks } from '../services/levels';
+import { logError } from '../utils/logger';
 import TopBar from '../components/TopBar';
 import HelpModal from '../components/HelpModal';
 import PalettePanel from '../components/PalettePanel';
 import CircuitCanvas from '../components/CircuitCanvas';
 import ScorePanel from '../components/ScorePanel';
-// Objective panel removed from sidebar
 import IOTrayPanel from '../components/IOTrayPanel';
+// Objective panel removed from sidebar
 import Toast from '../components/Toast';
 import './Play.css';
 
 export default function Play() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { loadLevel, sim, currentLevel, showHelp, setShowHelp } = useStore();
+  const { loadLevel, sim, currentLevel, showHelp, setShowHelp, currentPack } = useStore();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [levelIds, setLevelIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (id) {
       loadLevel(id).catch((err) => {
-        console.error('Failed to load level:', err);
+        logError('Failed to load level:', err);
         navigate('/');
       });
     }
@@ -30,10 +31,22 @@ export default function Play() {
 
   // Load level index for progression
   useEffect(() => {
-    fetchLevelIndex()
-      .then(ids => setLevelIds(ids.map(s => s.replace(/\.json$/, ''))))
-      .catch(err => console.error('Failed to fetch level index', err));
-  }, []);
+    const loadLists = async () => {
+      try {
+        if (currentPack) {
+          const packs = await fetchPacks();
+          const list = packs[currentPack] || [];
+          setLevelIds(list.map(s => s.replace(/\.json$/, '')));
+        } else {
+          const ids = await fetchLevelIndex();
+          setLevelIds(ids.map(s => s.replace(/\.json$/, '')));
+        }
+      } catch (err) {
+        logError('Failed to fetch lists', err);
+      }
+    };
+    loadLists();
+  }, [currentPack]);
 
   useEffect(() => {
     if (!sim.last) return;
@@ -42,19 +55,7 @@ export default function Play() {
       message: sim.last.message || (sim.last.success ? 'Success!' : 'Failed'),
       type: sim.last.success ? 'success' : 'error',
     });
-
-    // Auto-advance on success to the next level if available
-    if (sim.last.success && currentLevel) {
-      const idx = levelIds.indexOf(currentLevel.id);
-      const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
-      if (nextId) {
-        const t = setTimeout(() => navigate(`/play/${nextId}`), 1200);
-        return () => clearTimeout(t);
-      } else if (levelIds.length > 0) {
-        // No more levels
-        setToast({ message: 'All challenges complete! 🎉', type: 'success' });
-      }
-    }
+    // Do not auto-advance on success; Next button is available on the overlay bar
   }, [sim.last, currentLevel?.id, levelIds, navigate]);
 
   if (!currentLevel) {
