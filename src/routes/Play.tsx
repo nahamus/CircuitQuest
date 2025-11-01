@@ -7,7 +7,7 @@ import HelpModal from '../components/HelpModal';
 import PalettePanel from '../components/PalettePanel';
 import CircuitCanvas from '../components/CircuitCanvas';
 import ScorePanel from '../components/ScorePanel';
-import ObjectivePanel from '../components/ObjectivePanel';
+// Objective panel removed from sidebar
 import IOTrayPanel from '../components/IOTrayPanel';
 import Toast from '../components/Toast';
 import './Play.css';
@@ -68,7 +68,6 @@ export default function Play() {
       <div className="play-content">
         <div className="play-left">
           <IOTrayPanel />
-          <ObjectivePanel />
           <PalettePanel />
         </div>
         <CircuitCanvas />

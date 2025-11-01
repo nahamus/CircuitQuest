@@ -1,4 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchLevelIndex } from '../services/levels';
 import { useStore } from '../state/useStore';
 import type { Gate, Wire, GateType } from '../models/types';
 import clsx from 'clsx';
@@ -37,6 +39,8 @@ export default function CircuitCanvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const [levelIds, setLevelIds] = useState<string[]>([]);
   const [dragging, setDragging] = useState<{ gateId: string; startX: number; startY: number; offsetX: number; offsetY: number } | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
   
@@ -61,6 +65,13 @@ export default function CircuitCanvas() {
     fitToView,
     currentLevel,
   } = useStore();
+
+  // Load level ids for Next button
+  useEffect(() => {
+    fetchLevelIndex()
+      .then(ids => setLevelIds(ids.map(s => s.replace(/\.json$/, ''))))
+      .catch(() => {});
+  }, []);
 
   // Compute IO bar metrics (center Y and height) responsive to viewport
   const computeBarMetrics = useCallback((): { barY: number; barHeight: number; padding: number } | null => {
@@ -327,21 +338,9 @@ export default function CircuitCanvas() {
     const sx = gate.x;
     const sy = gate.y;
     const snap = ui.gridSnap;
-    // Base sizes from snap
-    let width = snap * 0.8;
-    let height = snap * 0.8;
-    let portSize = snap * 0.15;
-    // Scale IO gates proportionally to the overlay bar height for better readability
-    if (gate.type === 'INPUT' || gate.type === 'OUTPUT') {
-      const m = computeBarMetrics();
-      if (m) {
-        const targetUnit = m.barHeight; // world units
-        const scale = Math.max(1.6, Math.min(3.0, targetUnit / (snap * 1.0)));
-        width *= scale;
-        height *= scale;
-        portSize *= Math.min(2.2, scale * 1.2);
-      }
-    }
+    const width = snap * 0.8;
+    const height = snap * 0.8;
+    const portSize = snap * 0.15;
     const isSelected = selection.gateId === gate.id;
 
     const hasDiagram = gate.type === 'AND' || gate.type === 'OR' || gate.type === 'XOR' || gate.type === 'NOT' || gate.type === 'BUF';
@@ -735,6 +734,40 @@ export default function CircuitCanvas() {
     <div ref={containerRef} className="circuit-canvas-container">
       {/* Responsive overlay bar (HTML) for clean visuals */}
       <div ref={overlayRef} className="io-overlay" />
+      <div className="io-overlay-controls">
+        <div className="ioc-left">
+          <div className="ioc-title">{currentLevel?.title}</div>
+          {currentLevel?.description && (
+            <div className="ioc-sub">{currentLevel.description}</div>
+          )}
+        </div>
+        <div className="ioc-center">
+          {currentLevel && (
+            <div className="ioc-goal">
+              {currentLevel.outputs.map(o => (
+                <span key={o.id} className="ioc-goal-pill">
+                  <span className={`ioc-dot ${o.target ? 't1' : 't0'}`} />
+                  <span className="ioc-goal-label">{(o.label || o.id)}</span>
+                  <span className="ioc-goal-val">{o.target ? '1' : '0'}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="ioc-right">
+          {currentLevel && (
+            (() => {
+              const idx = levelIds.indexOf(currentLevel.id);
+              const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
+              return (
+                <button className="ioc-next" disabled={!nextId} onClick={() => nextId && navigate(`/play/${nextId}`)}>
+                  Next ›
+                </button>
+              );
+            })()
+          )}
+        </div>
+      </div>
       <svg
         ref={svgRef}
         className="circuit-canvas grid-bg"

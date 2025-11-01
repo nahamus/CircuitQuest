@@ -1,19 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../state/useStore';
-import { fetchLevelIndex } from '../services/levels';
 import './TopBar.css';
 
 export default function TopBar() {
   const navigate = useNavigate();
   const { currentLevel, sim, runSimulation, resetLevel, deleteSelection } = useStore();
-  const [levelIds, setLevelIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetchLevelIndex()
-      .then(ids => setLevelIds(ids.map(s => s.replace(/\.json$/, ''))))
-      .catch(() => {});
-  }, []);
 
   if (!currentLevel) return null;
 
@@ -21,25 +12,8 @@ export default function TopBar() {
     <div className="topbar">
       <div className="topbar-left">
         <button onClick={() => navigate('/')}>← Back to Menu</button>
-        <h2>{currentLevel.title}</h2>
-        {(() => {
-          const idx = levelIds.indexOf(currentLevel.id);
-          const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
-          return (
-            <button
-              style={{ marginLeft: 8 }}
-              disabled={!nextId}
-              onClick={() => nextId && navigate(`/play/${nextId}`)}
-            >
-              Next ›
-            </button>
-          );
-        })()}
       </div>
       <div className="topbar-center">
-        {!sim.last && currentLevel.description && (
-          <div className="level-description">{currentLevel.description}</div>
-        )}
         {sim.last && (
           <>
             <div className={`sim-result ${sim.last.success ? 'success' : 'error'}`}>
