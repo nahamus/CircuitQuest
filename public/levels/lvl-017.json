@@ -1,0 +1,26 @@
+{
+  "id": "lvl-017",
+  "title": "2→4 Decoder",
+  "description": "Build a 2-to-4 decoder. For A=1, B=0 the one-hot output should be D2=1.",
+  "grid": { "cols": 36, "rows": 22, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 8,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": false, "x": 1, "y": 14, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outD0", "label": "D0", "target": false, "x": 34, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "outD1", "label": "D1", "target": false, "x": 34, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "outD2", "label": "D2", "target": true,  "x": 34, "y": 14, "inputs": [], "outputs": [] },
+    { "id": "outD3", "label": "D3", "target": false, "x": 34, "y": 18, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 4, "OR": 0, "NOT": 2, "BUF": 2, "XOR": 0, "XNOR": 0, "NAND": 0, "NOR": 0, "SPLIT": 4, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 12,
+  "hints": {
+    "subGoals": [
+      "Compute ¬A and ¬B",
+      "D0=¬A∧¬B, D1=¬A∧B, D2=A∧¬B, D3=A∧B"
+    ]
+  }
+}
+
+

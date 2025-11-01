@@ -1,0 +1,26 @@
+{
+  "id": "lvl-015",
+  "title": "2-bit Comparator",
+  "description": "Build a 2-bit comparator: outputs GT and EQ for A1A0 vs B1B0.",
+  "grid": { "cols": 36, "rows": 22, "snap": 32 },
+  "inputs": [
+    { "id": "inA1", "label": "A1", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inA0", "label": "A0", "initial": false, "x": 1, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "inB1", "label": "B1", "initial": false, "x": 1, "y": 14, "inputs": [], "outputs": [] },
+    { "id": "inB0", "label": "B0", "initial": true,  "x": 1, "y": 18, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outGT", "label": "GT", "target": true,  "x": 34, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "outEQ", "label": "EQ", "target": false, "x": 34, "y": 16, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 4, "OR": 2, "NOT": 2, "BUF": 2, "XOR": 2, "XNOR": 1, "NAND": 0, "NOR": 0, "SPLIT": 4, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 14,
+  "hints": {
+    "subGoals": [
+      "EQ = XNOR(A1,B1) ∧ XNOR(A0,B0)",
+      "GT = (A1 ∧ ¬B1) ∨ (XNOR(A1,B1) ∧ A0 ∧ ¬B0)"
+    ]
+  }
+}
+
+

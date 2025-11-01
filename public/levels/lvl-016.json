@@ -1,0 +1,26 @@
+{
+  "id": "lvl-016",
+  "title": "4-bit Even Parity",
+  "description": "Generate even parity P for A,B,C,D (P=1 if even number of 1s).",
+  "grid": { "cols": 36, "rows": 22, "snap": 32 },
+  "inputs": [
+    { "id": "inA", "label": "A", "initial": true,  "x": 1, "y": 6,  "inputs": [], "outputs": [] },
+    { "id": "inB", "label": "B", "initial": true,  "x": 1, "y": 10, "inputs": [], "outputs": [] },
+    { "id": "inC", "label": "C", "initial": false, "x": 1, "y": 14, "inputs": [], "outputs": [] },
+    { "id": "inD", "label": "D", "initial": false, "x": 1, "y": 18, "inputs": [], "outputs": [] }
+  ],
+  "outputs": [
+    { "id": "outP", "label": "P", "target": true, "x": 34, "y": 12, "inputs": [], "outputs": [] }
+  ],
+  "palette": { "AND": 0, "OR": 0, "NOT": 0, "BUF": 2, "XOR": 4, "XNOR": 1, "NAND": 0, "NOR": 0, "SPLIT": 4, "INPUT": 0, "OUTPUT": 0 },
+  "maxComponents": 10,
+  "hints": {
+    "subGoals": [
+      "X = XOR(A,B)",
+      "Y = XOR(C,D)",
+      "P = XNOR(X,Y)"
+    ]
+  }
+}
+
+

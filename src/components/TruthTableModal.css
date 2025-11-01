@@ -1,12 +1,20 @@
 .tt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; overflow: auto; }
-.tt-modal { width: min(520px, 92vw); max-height: 92vh; margin: 12px; background: #101116; border: 1px solid #2c2c3a; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; flex-direction: column; }
+.tt-modal { width: max-content; max-width: 92vw; max-height: 92vh; margin: 10px; background: #101116; border: 1px solid #2c2c3a; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); display: flex; flex-direction: column; }
 .tt-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #2c2c3a; flex: 0 0 auto; }
 .tt-header h3 { margin: 0; font-size: 14px; color: #e0e0e0; }
 .tt-close { background: #2a2a3a; border: 1px solid #444; color: #e0e0e0; border-radius: 6px; padding: 2px 6px; cursor: pointer; font-size: 12px; }
 .tt-close:hover { background: #3a3a4a; }
-.tt-body { padding: 10px 12px; overflow: auto; flex: 1 1 auto; min-height: 0; }
-.tt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.tt-table th, .tt-table td { border: 1px solid #2c2c3a; padding: 4px 6px; text-align: center; color: #cfe6f5; }
-.tt-table th { background: #151620; color: #9fb3c8; font-weight: 600; }
+.tt-body { padding: 6px 8px; overflow: auto; flex: 1 1 auto; min-height: 0; }
+.tt-grid { display: grid; grid-template-columns: repeat(2, max-content); gap: 6px; align-items: start; justify-content: center; }
+.tt-grid .tt-card { min-width: 0; }
+.tt-card { border: 1px solid #2c2c3a; border-radius: 6px; overflow: hidden; }
+.tt-title { color: #9fb3c8; font-size: 12px; padding: 4px 6px; background: #0f1218; border-bottom: 1px solid #2c2c3a; }
+.tt-table { width: auto; border-collapse: collapse; font-size: 12px; table-layout: fixed; display: inline-table; }
+.tt-table th, .tt-table td { border: 1px solid #2c2c3a; padding: 2px 4px; text-align: center; color: #cfe6f5; width: 50px; max-width: 50px; }
+.tt-table th { background: #151620; color: #9fb3c8; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tt-table td { background: #0f1218; }
+
+@media (max-width: 560px) {
+  .tt-grid { grid-template-columns: 1fr; }
+}
 

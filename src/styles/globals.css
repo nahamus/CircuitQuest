@@ -1,3 +1,8 @@
+.port-hit {
+  fill: transparent;
+  stroke: none;
+  cursor: crosshair;
+}
 * {
   margin: 0;
   padding: 0;
@@ -37,8 +42,8 @@ body {
 }
 
 .wire.active {
-  stroke: #0bd3ff;
-  filter: drop-shadow(0 0 4px #0bd3ff);
+  stroke: #12dbff;
+  filter: drop-shadow(0 0 4px #12dbff);
   stroke-width: 2.5;
 }
 
@@ -59,7 +64,7 @@ body {
 .gate-body {
   fill: #1a1a24;
   stroke: #444;
-  stroke-width: 2;
+  stroke-width: 2.5;
 }
 
 .gate-body.selected {
@@ -68,35 +73,51 @@ body {
 }
 
 .gate-input {
-  fill: #333;
-  stroke: #666;
+  fill: none;
+  stroke: #6d7682;
+  stroke-width: 2.2;
 }
 
 .gate-output {
-  fill: #333;
-  stroke: #666;
+  fill: none;
+  stroke: #6d7682;
+  stroke-width: 2.2;
 }
 
 .gate-input.active {
-  fill: #0bd3ff;
-  stroke: #0bd3ff;
-  filter: drop-shadow(0 0 4px #0bd3ff);
+  stroke: #12dbff;
+  filter: drop-shadow(0 0 6px #12dbff);
 }
 
 .gate-output.active {
-  fill: #0bd3ff;
-  stroke: #0bd3ff;
-  filter: drop-shadow(0 0 4px #0bd3ff);
+  stroke: #12dbff;
+  filter: drop-shadow(0 0 6px #12dbff);
 }
 
 .gate-input.inactive {
-  fill: #333;
-  stroke: #666;
+  stroke: #58606b;
 }
 
 .gate-output.inactive {
-  fill: #333;
-  stroke: #666;
+  stroke: #58606b;
+}
+
+/* Port halo for active pins */
+.port-halo {
+  fill: none;
+  stroke: #12dbff;
+  stroke-width: 1.5;
+  opacity: 0.15;
+  filter: drop-shadow(0 0 8px #12dbff);
+}
+
+/* Output bulb ring highlight when target met (kept generic; ring drawn in component) */
+.bulb-ring {
+  fill: none;
+  stroke: #ffd700;
+  stroke-width: 2.5;
+  opacity: 0.65;
+  filter: drop-shadow(0 0 6px #ffd700);
 }
 
 .bulb-body {

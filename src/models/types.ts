@@ -49,6 +49,9 @@ export interface Level {
     headers: string[]; // e.g., ['A','B','F']
     rows: (0|1|'-')[][]; // array of rows matching headers length
   };
+  hints?: {
+    subGoals?: string[];
+  };
 }
 
 export interface SimResult {
