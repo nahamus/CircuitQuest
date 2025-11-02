@@ -39,6 +39,8 @@ body {
   stroke-width: 2;
   fill: none;
   pointer-events: stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .wire.active {
@@ -72,35 +74,17 @@ body {
   stroke-width: 3;
 }
 
-.gate-input {
-  fill: none;
-  stroke: #6d7682;
-  stroke-width: 2.2;
-}
+.gate-input { fill: #6d7682; stroke: none; }
 
-.gate-output {
-  fill: none;
-  stroke: #6d7682;
-  stroke-width: 2.2;
-}
+.gate-output { fill: #6d7682; stroke: none; }
 
-.gate-input.active {
-  stroke: #12dbff;
-  filter: drop-shadow(0 0 6px #12dbff);
-}
+.gate-input.active { fill: #12dbff; filter: drop-shadow(0 0 6px #12dbff); }
 
-.gate-output.active {
-  stroke: #12dbff;
-  filter: drop-shadow(0 0 6px #12dbff);
-}
+.gate-output.active { fill: #12dbff; filter: drop-shadow(0 0 6px #12dbff); }
 
-.gate-input.inactive {
-  stroke: #58606b;
-}
+.gate-input.inactive { fill: #58606b; }
 
-.gate-output.inactive {
-  stroke: #58606b;
-}
+.gate-output.inactive { fill: #58606b; }
 
 /* Port halo for active pins */
 .port-halo {

@@ -67,6 +67,7 @@ export default function CircuitCanvas() {
     fitToView,
     currentLevel,
     sim,
+    runSimulation,
     showTruthTable,
     setTruthTableVisible,
     hintSubIndex,
@@ -654,10 +655,45 @@ export default function CircuitCanvas() {
       return null;
     }
 
-    // Use path coordinates directly - ensure proper format for SVG path
-    const pathStr = wire.path.map((p, idx) => {
-      return `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
-    }).join(' ');
+    // Build a rounded-corner path from Manhattan points
+    const buildRoundedPath = (pts: { x: number; y: number }[], r: number): string => {
+      if (pts.length === 2) {
+        return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+      }
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 1; i < pts.length; i++) {
+        const p0 = pts[i - 1];
+        const p1 = pts[i];
+        const p2 = i + 1 < pts.length ? pts[i + 1] : undefined;
+        if (!p2) {
+          d += ` L ${p1.x} ${p1.y}`;
+          break;
+        }
+        const dx1 = p1.x - p0.x;
+        const dy1 = p1.y - p0.y;
+        const dx2 = p2.x - p1.x;
+        const dy2 = p2.y - p1.y;
+        // Only round if it's a corner (changes direction)
+        if ((dx1 === 0 && dy1 !== 0 && dx2 !== 0 && dy2 === 0) || (dx1 !== 0 && dy1 === 0 && dx2 === 0 && dy2 !== 0)) {
+          const len1 = Math.max(1, Math.abs(dx1) + Math.abs(dy1));
+          const len2 = Math.max(1, Math.abs(dx2) + Math.abs(dy2));
+          const rr = Math.min(r, len1 / 2, len2 / 2);
+          // incoming end point
+          const ex = p1.x - Math.sign(dx1) * rr;
+          const ey = p1.y - Math.sign(dy1) * rr;
+          // outgoing start point
+          const sx = p1.x + Math.sign(dx2) * rr;
+          const sy = p1.y + Math.sign(dy2) * rr;
+          d += ` L ${ex} ${ey} Q ${p1.x} ${p1.y} ${sx} ${sy}`;
+        } else {
+          d += ` L ${p1.x} ${p1.y}`;
+        }
+      }
+      return d;
+    };
+
+    const cornerR = Math.max(4, ui.gridSnap * 0.2);
+    const pathStr = buildRoundedPath(wire.path, cornerR);
 
     return (
       <path
@@ -685,7 +721,41 @@ export default function CircuitCanvas() {
     const midX = x2;
     const midY = y1;
     
-    const pathStr = `M ${x1} ${y1} L ${midX} ${midY} L ${x2} ${y2}`;
+    const previewPts = [
+      { x: x1, y: y1 },
+      { x: midX, y: midY },
+      { x: x2, y: y2 },
+    ];
+    const cornerR = Math.max(4, ui.gridSnap * 0.2);
+    const pathStr = (() => {
+      // inline small helper (same logic as above) to avoid hoisting
+      const build = (pts: { x: number; y: number }[], r: number): string => {
+        if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+        let d = `M ${pts[0].x} ${pts[0].y}`;
+        for (let i = 1; i < pts.length; i++) {
+          const p0 = pts[i - 1];
+          const p1 = pts[i];
+          const p2 = i + 1 < pts.length ? pts[i + 1] : undefined;
+          if (!p2) { d += ` L ${p1.x} ${p1.y}`; break; }
+          const dx1 = p1.x - p0.x, dy1 = p1.y - p0.y;
+          const dx2 = p2.x - p1.x, dy2 = p2.y - p1.y;
+          if ((dx1 === 0 && dy1 !== 0 && dx2 !== 0 && dy2 === 0) || (dx1 !== 0 && dy1 === 0 && dx2 === 0 && dy2 !== 0)) {
+            const len1 = Math.max(1, Math.abs(dx1) + Math.abs(dy1));
+            const len2 = Math.max(1, Math.abs(dx2) + Math.abs(dy2));
+            const rr = Math.min(r, len1 / 2, len2 / 2);
+            const ex = p1.x - Math.sign(dx1) * rr;
+            const ey = p1.y - Math.sign(dy1) * rr;
+            const sx = p1.x + Math.sign(dx2) * rr;
+            const sy = p1.y + Math.sign(dy2) * rr;
+            d += ` L ${ex} ${ey} Q ${p1.x} ${p1.y} ${sx} ${sy}`;
+          } else {
+            d += ` L ${p1.x} ${p1.y}`;
+          }
+        }
+        return d;
+      };
+      return build(previewPts, cornerR);
+    })();
 
     return (
       <path
@@ -1092,6 +1162,15 @@ export default function CircuitCanvas() {
               const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
               return (
                 <>
+                  <button
+                    className="primary"
+                    disabled={sim.running}
+                    onClick={() => runSimulation()}
+                    title="Submit"
+                    style={{ marginRight: 12 }}
+                  >
+                    {sim.running ? 'Submitting…' : 'Submit'}
+                  </button>
                   <button className="ioc-next" disabled={!nextId} onClick={() => nextId && navigate(`/play/${nextId}`)}>
                     Next ›
                   </button>
