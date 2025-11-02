@@ -375,17 +375,17 @@ export default function CircuitCanvas() {
             {gate.type === 'NOT' && (
               <>
                 <polygon
-                  points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                  points={`${-width*0.32},${-height*0.35} ${-width*0.32},${height*0.35} ${width*0.32},0`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2}
                 />
-                <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+                <circle cx={width*0.36} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2} />
               </>
             )}
             {gate.type === 'BUF' && (
               <polygon
-                points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                points={`${-width*0.32},${-height*0.35} ${-width*0.32},${height*0.35} ${width*0.32},0`}
                 fill="none"
                 stroke="#e0e0e0"
                 strokeWidth={2}
@@ -393,7 +393,7 @@ export default function CircuitCanvas() {
             )}
             {gate.type === 'AND' && (
               <path
-                d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                d={`M ${-width*0.35} ${-height*0.35} L 0 ${-height*0.35} A ${width*0.35} ${height*0.35} 0 0 1 0 ${height*0.35} L ${-width*0.35} ${height*0.35} Z`}
                 fill="none"
                 stroke="#e0e0e0"
                 strokeWidth={2}
@@ -402,24 +402,24 @@ export default function CircuitCanvas() {
             {gate.type === 'NAND' && (
               <>
                 <path
-                  d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                  d={`M ${-width*0.35} ${-height*0.35} L 0 ${-height*0.35} A ${width*0.35} ${height*0.35} 0 0 1 0 ${height*0.35} L ${-width*0.35} ${height*0.35} Z`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2}
                 />
-                <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+                <circle cx={width*0.36} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2} />
               </>
             )}
             {gate.type === 'OR' && (
               <>
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
@@ -429,65 +429,63 @@ export default function CircuitCanvas() {
             {gate.type === 'NOR' && (
               <>
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
-                <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
+                <circle cx={width*0.38} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
               </>
             )}
             {gate.type === 'XOR' && (
               <>
-                {/* OR body */}
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
-                {/* Extra XOR back curve */}
                 <path
-                  d={`M ${-width*0.42} ${-height*0.3} C ${-width*0.37} ${-height*0.1}, ${-width*0.37} ${height*0.1}, ${-width*0.42} ${height*0.3}`}
+                  d={`M ${-width*0.44} ${-height*0.35} C ${-width*0.38} ${-height*0.10}, ${-width*0.38} ${height*0.10}, ${-width*0.44} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
-                  strokeWidth={2.5}
+                  strokeWidth={2.4}
                 />
               </>
             )}
             {gate.type === 'XNOR' && (
               <>
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.42} ${-height*0.3} C ${-width*0.37} ${-height*0.1}, ${-width*0.37} ${height*0.1}, ${-width*0.42} ${height*0.3}`}
+                  d={`M ${-width*0.44} ${-height*0.35} C ${-width*0.38} ${-height*0.10}, ${-width*0.38} ${height*0.10}, ${-width*0.44} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
-                  strokeWidth={2.5}
+                  strokeWidth={2.4}
                 />
-                <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
+                <circle cx={width*0.38} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
               </>
             )}
             {gate.type === 'SPLIT' && (
@@ -705,8 +703,8 @@ export default function CircuitCanvas() {
     // Snap to grid for ghost gate placement
     const [sx, sy] = snapToGrid(mousePos.x, mousePos.y);
     const snap = ui.gridSnap;
-    const width = snap * 1.05;
-    const height = snap * 1.05;
+    const width = snap * 1.12;
+    const height = snap * 1.12;
     const stroke = GATE_COLORS[armedGateType];
     const sw = 2;
 
