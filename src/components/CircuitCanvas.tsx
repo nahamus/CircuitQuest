@@ -307,9 +307,9 @@ export default function CircuitCanvas() {
     const sx = gate.x;
     const sy = gate.y;
     const snap = ui.gridSnap;
-    const width = snap * 1.05;
-    const height = snap * 1.05;
-    const portSize = snap * 0.2;
+    const width = snap * 1.12;
+    const height = snap * 1.12;
+    const portSize = snap * 0.22;
     const isSelected = selection.gateId === gate.id;
 
     const hasDiagram =
@@ -343,16 +343,20 @@ export default function CircuitCanvas() {
                 <circle cx={0} cy={0} r={width * 0.55} className="bulb-ring" />
               ) : null;
             })()}
-            {/* Target value label */}
-            <text
-              x={0}
-              y={-height / 2 - 8}
-              className="gate-value-label"
-              textAnchor="middle"
-              fontSize={`${snap * 0.12}px`}
-            >
-              →{gate.target ? '1' : '0'}
-            </text>
+            {/* Output label inside bulb */}
+            {gate.label && (
+              <text
+                x={0}
+                y={0}
+                className="gate-value-label"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={`${Math.min(width, height) * 0.22}`}
+                style={{ fontWeight: 700, opacity: 0.95 }}
+              >
+                {gate.label}
+              </text>
+            )}
           </>
         ) : (
           <>
@@ -494,15 +498,46 @@ export default function CircuitCanvas() {
               </>
             )}
             {gate.type === 'INPUT' && (
-              <text
-                x={0}
-                y={-height / 2 - 8}
-                className="gate-value-label"
-                textAnchor="middle"
-                fontSize={`${snap * 0.12}px`}
-              >
-                {gate.initial ? '1' : '0'}
-              </text>
+              <>
+                {gate.label && (
+                  (() => {
+                    const pocketW = Math.max(10, width * 0.24);
+                    const pocketH = Math.max(10, height * 0.45);
+                    const px = -width / 2 - pocketW; // attach flush to the square
+                    const py = -pocketH / 2;
+                    const radius = 3;
+                    const labelSize = pocketH * 0.42;
+                    return (
+                      <g className="input-pocket">
+                        <rect x={px} y={py} width={pocketW} height={pocketH} rx={radius} ry={radius}
+                          fill="#1a1a24" stroke="#444" strokeWidth={1.4} />
+                        <text
+                          x={px + pocketW / 2}
+                          y={0}
+                          className="gate-value-label"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fontSize={`${labelSize}`}
+                          style={{ fontWeight: 600, opacity: 0.9 }}
+                        >
+                          {gate.label}
+                        </text>
+                      </g>
+                    );
+                  })()
+                )}
+                <text
+                  x={0}
+                  y={0}
+                  className="gate-value-label"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={`${Math.min(width, height) * 0.5}`}
+                  style={{ fontWeight: 800 }}
+                >
+                  {gate.initial ? '1' : '0'}
+                </text>
+              </>
             )}
           </>
         )}
@@ -588,7 +623,7 @@ export default function CircuitCanvas() {
             </g>
           );
         })}
-        {gate.label && (
+        {gate.label && gate.type !== 'INPUT' && gate.type !== 'OUTPUT' && (
           <text
             className="gate-label"
             x={0}

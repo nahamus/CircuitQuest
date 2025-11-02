@@ -121,7 +121,7 @@ export const useStore = create<StoreState>((set, get) => ({
       showTruthTable: false,
       showHelp: false,
       ui: {
-        zoom: 1,
+        zoom: 1.1,
         offsetX: 0,
         offsetY: 0,
         gridSnap: level.grid.snap,
@@ -267,9 +267,9 @@ export const useStore = create<StoreState>((set, get) => ({
   moveGate: (gateId: string, x: number, y: number) => {
     const state = get();
     const snap = state.ui.gridSnap;
-    const gateWidth = snap * 0.8;
-    const gateHeight = snap * 0.8;
-    const portSize = snap * 0.2; // match render
+    const gateWidth = snap * 0.9;
+    const gateHeight = snap * 0.9;
+    const portSize = snap * 0.22; // match render
     const ringRadius = portSize * 0.6; // match render ring size
     
     // Helper function to calculate port position (matching renderGate)
@@ -321,9 +321,9 @@ export const useStore = create<StoreState>((set, get) => ({
     
     // Calculate the actual port position for the wire start
     const snap = state.ui.gridSnap;
-    const gateWidth = snap * 0.8;
-    const gateHeight = snap * 0.8;
-    const portSize = snap * 0.2; // match render
+    const gateWidth = snap * 0.9;
+    const gateHeight = snap * 0.9;
+    const portSize = snap * 0.22; // match render
     const ringRadius = portSize * 0.6;
     
     const centerY = gate.y + ((port.index + 1) / (gate.outputs.length + 1)) * gateHeight - gateHeight / 2;
@@ -363,9 +363,9 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     
     const snap = state.ui.gridSnap;
-    const gateWidth = snap * 0.8;
-    const gateHeight = snap * 0.8;
-    const portSize = snap * 0.2; // match render
+    const gateWidth = snap * 0.9;
+    const gateHeight = snap * 0.9;
+    const portSize = snap * 0.22; // match render
     const ringRadius = portSize * 0.6;
     
     // Calculate port positions matching renderGate
@@ -571,10 +571,10 @@ export const useStore = create<StoreState>((set, get) => ({
     const viewportWidth = 800; // approximate, will be updated by canvas
     const viewportHeight = 600;
     
-    // Calculate zoom to fit
+    // Calculate zoom to fit (slightly larger for readability)
     const zoomX = viewportWidth / width;
     const zoomY = viewportHeight / height;
-    const zoom = Math.min(zoomX, zoomY, 2) * 0.8; // 0.8 for padding, max 2x zoom
+    const zoom = Math.min(zoomX, zoomY, 2) * 0.9; // 0.9 for tighter fit, max 2x zoom
     
     // Center the view
     const offsetX = viewportWidth / 2 / zoom - centerX;
