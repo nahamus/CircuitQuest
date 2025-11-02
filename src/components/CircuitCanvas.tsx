@@ -40,6 +40,7 @@ export default function CircuitCanvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const navigate = useNavigate();
   const [levelIds, setLevelIds] = useState<string[]>([]);
   const [dragging, setDragging] = useState<{ gateId: string; startX: number; startY: number; offsetX: number; offsetY: number } | null>(null);
@@ -134,6 +135,26 @@ export default function CircuitCanvas() {
     const worldY = ((y - offsetY) / scale) + viewBox.y;
     
     return [worldX, worldY];
+  }, []);
+
+  // Track actual SVG pixel size locally to keep object size constant on window resize
+  useEffect(() => {
+    const target = svgRef.current;
+    if (!target) return;
+    const update = () => {
+      const r = target.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) setViewport({ w: Math.floor(r.width), h: Math.floor(r.height) });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(target);
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+    };
   }, []);
 
   useEffect(() => {
@@ -822,26 +843,11 @@ export default function CircuitCanvas() {
 
   if (!currentLevel) return null;
 
-  // Calculate bounds for viewBox to show all gates with padding
-  const allGates = gates.length > 0 ? gates : [...(currentLevel.inputs || []), ...(currentLevel.outputs || [])];
-  const snap = currentLevel.grid.snap;
-  let minX = snap;
-  let maxX = (currentLevel.grid.cols - 1) * snap;
-  let minY = 0; // Anchor viewBox to the top so the bar sits at the top
-  let maxY = (currentLevel.grid.rows - 1) * snap;
-  
-  if (allGates.length > 0) {
-    const xs = allGates.map(g => g.x);
-    const ys = allGates.map(g => g.y);
-    minX = Math.min(...xs) - snap * 4;
-    maxX = Math.max(...xs) + snap * 4;
-    // Keep the top anchored at 0 so the bar remains at the top
-    minY = 0;
-    maxY = Math.max(...ys) + snap * 4;
-  }
-  
-  const viewBoxWidth = Math.max(maxX - minX, currentLevel.grid.cols * snap);
-  const viewBoxHeight = Math.max(maxY - minY, (currentLevel.grid.rows + 1) * snap); // Extra space for bar
+  // Derive viewBox from viewport and UI zoom/offset so object sizes remain constant on resize
+  const viewBoxWidth = Math.max(1, (viewport.w || 1) / Math.max(0.0001, ui.zoom));
+  const viewBoxHeight = Math.max(1, (viewport.h || 1) / Math.max(0.0001, ui.zoom));
+  const minX = -ui.offsetX;
+  const minY = -ui.offsetY;
 
   // Live guide evaluation: compute which wires carry a logical 1 from current inputs
   const liveActiveWireIds = useMemo(() => {
