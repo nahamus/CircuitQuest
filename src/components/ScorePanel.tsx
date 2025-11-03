@@ -5,7 +5,7 @@ import type { Progress } from '../services/storage';
 import './ScorePanel.css';
 
 export default function ScorePanel() {
-  const { currentLevel, resetLevel, runSimulation, sim, ui, setShowLivePath, setTruthTableVisible, setShowHelp, revealNextSubGoal } = useStore();
+  const { currentLevel, resetLevel, ui, setShowLivePath, setTruthTableVisible, setShowHelp, revealNextSubGoal } = useStore();
   const currentGates = useStore((state) => 
     state.gates.filter(g => g.type !== 'INPUT' && g.type !== 'OUTPUT').length
   );
@@ -46,9 +46,7 @@ export default function ScorePanel() {
       </div>
       <div className="side-actions">
         <button className="side-btn danger" onClick={resetLevel}>↺ Reset</button>
-        <button className="side-btn primary" onClick={runSimulation} disabled={sim.running}>
-          {sim.running ? 'Running…' : '▶ Run'}
-        </button>
+        {/* Run button moved to on-canvas overlay */}
         <div className="side-divider" />
         <button
           className="side-btn"

@@ -40,6 +40,7 @@ export default function CircuitCanvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
   const navigate = useNavigate();
   const [levelIds, setLevelIds] = useState<string[]>([]);
   const [dragging, setDragging] = useState<{ gateId: string; startX: number; startY: number; offsetX: number; offsetY: number } | null>(null);
@@ -66,6 +67,7 @@ export default function CircuitCanvas() {
     fitToView,
     currentLevel,
     sim,
+    runSimulation,
     showTruthTable,
     setTruthTableVisible,
     hintSubIndex,
@@ -134,6 +136,26 @@ export default function CircuitCanvas() {
     const worldY = ((y - offsetY) / scale) + viewBox.y;
     
     return [worldX, worldY];
+  }, []);
+
+  // Track actual SVG pixel size locally to keep object size constant on window resize
+  useEffect(() => {
+    const target = svgRef.current;
+    if (!target) return;
+    const update = () => {
+      const r = target.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) setViewport({ w: Math.floor(r.width), h: Math.floor(r.height) });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(target);
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+    };
   }, []);
 
   useEffect(() => {
@@ -286,9 +308,9 @@ export default function CircuitCanvas() {
     const sx = gate.x;
     const sy = gate.y;
     const snap = ui.gridSnap;
-    const width = snap * 1.05;
-    const height = snap * 1.05;
-    const portSize = snap * 0.2;
+    const width = snap * 1.12;
+    const height = snap * 1.12;
+    const portSize = snap * 0.22;
     const isSelected = selection.gateId === gate.id;
 
     const hasDiagram =
@@ -322,16 +344,20 @@ export default function CircuitCanvas() {
                 <circle cx={0} cy={0} r={width * 0.55} className="bulb-ring" />
               ) : null;
             })()}
-            {/* Target value label */}
-            <text
-              x={0}
-              y={-height / 2 - 8}
-              className="gate-value-label"
-              textAnchor="middle"
-              fontSize={`${snap * 0.12}px`}
-            >
-              →{gate.target ? '1' : '0'}
-            </text>
+            {/* Output label inside bulb */}
+            {gate.label && (
+              <text
+                x={0}
+                y={0}
+                className="gate-value-label"
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fontSize={`${Math.min(width, height) * 0.22}`}
+                style={{ fontWeight: 700, opacity: 0.95 }}
+              >
+                {gate.label}
+              </text>
+            )}
           </>
         ) : (
           <>
@@ -350,17 +376,17 @@ export default function CircuitCanvas() {
             {gate.type === 'NOT' && (
               <>
                 <polygon
-                  points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                  points={`${-width*0.32},${-height*0.35} ${-width*0.32},${height*0.35} ${width*0.32},0`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2}
                 />
-                <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+                <circle cx={width*0.36} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2} />
               </>
             )}
             {gate.type === 'BUF' && (
               <polygon
-                points={`${-width*0.25},${-height*0.3} ${-width*0.25},${height*0.3} ${width*0.25},0`}
+                points={`${-width*0.32},${-height*0.35} ${-width*0.32},${height*0.35} ${width*0.32},0`}
                 fill="none"
                 stroke="#e0e0e0"
                 strokeWidth={2}
@@ -368,7 +394,7 @@ export default function CircuitCanvas() {
             )}
             {gate.type === 'AND' && (
               <path
-                d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                d={`M ${-width*0.35} ${-height*0.35} L 0 ${-height*0.35} A ${width*0.35} ${height*0.35} 0 0 1 0 ${height*0.35} L ${-width*0.35} ${height*0.35} Z`}
                 fill="none"
                 stroke="#e0e0e0"
                 strokeWidth={2}
@@ -377,24 +403,24 @@ export default function CircuitCanvas() {
             {gate.type === 'NAND' && (
               <>
                 <path
-                  d={`M ${-width*0.25} ${-height*0.3} L 0 ${-height*0.3} A ${width*0.25} ${height*0.3} 0 0 1 0 ${height*0.3} L ${-width*0.25} ${height*0.3} Z`}
+                  d={`M ${-width*0.35} ${-height*0.35} L 0 ${-height*0.35} A ${width*0.35} ${height*0.35} 0 0 1 0 ${height*0.35} L ${-width*0.35} ${height*0.35} Z`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2}
                 />
-                <circle cx={width*0.3} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2} />
+                <circle cx={width*0.36} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2} />
               </>
             )}
             {gate.type === 'OR' && (
               <>
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
@@ -404,65 +430,63 @@ export default function CircuitCanvas() {
             {gate.type === 'NOR' && (
               <>
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
-                <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
+                <circle cx={width*0.38} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
               </>
             )}
             {gate.type === 'XOR' && (
               <>
-                {/* OR body */}
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
-                {/* Extra XOR back curve */}
                 <path
-                  d={`M ${-width*0.42} ${-height*0.3} C ${-width*0.37} ${-height*0.1}, ${-width*0.37} ${height*0.1}, ${-width*0.42} ${height*0.3}`}
+                  d={`M ${-width*0.44} ${-height*0.35} C ${-width*0.38} ${-height*0.10}, ${-width*0.38} ${height*0.10}, ${-width*0.44} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
-                  strokeWidth={2.5}
+                  strokeWidth={2.4}
                 />
               </>
             )}
             {gate.type === 'XNOR' && (
               <>
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.05} ${-height*0.3}, ${width*0.05} ${-height*0.3}, ${width*0.3} 0 C ${width*0.05} ${height*0.3}, ${-width*0.05} ${height*0.3}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.32} ${-height*0.35} C ${-width*0.02} ${-height*0.35}, ${width*0.18} ${-height*0.25}, ${width*0.35} 0 C ${width*0.18} ${height*0.25}, ${-width*0.02} ${height*0.35}, ${-width*0.32} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.3} ${-height*0.3} C ${-width*0.25} ${-height*0.1}, ${-width*0.25} ${height*0.1}, ${-width*0.3} ${height*0.3}`}
+                  d={`M ${-width*0.36} ${-height*0.35} C ${-width*0.30} ${-height*0.10}, ${-width*0.30} ${height*0.10}, ${-width*0.36} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
                   strokeWidth={2.2}
                 />
                 <path
-                  d={`M ${-width*0.42} ${-height*0.3} C ${-width*0.37} ${-height*0.1}, ${-width*0.37} ${height*0.1}, ${-width*0.42} ${height*0.3}`}
+                  d={`M ${-width*0.44} ${-height*0.35} C ${-width*0.38} ${-height*0.10}, ${-width*0.38} ${height*0.10}, ${-width*0.44} ${height*0.35}`}
                   fill="none"
                   stroke="#e0e0e0"
-                  strokeWidth={2.5}
+                  strokeWidth={2.4}
                 />
-                <circle cx={width*0.32} cy={0} r={width*0.05} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
+                <circle cx={width*0.38} cy={0} r={width*0.055} fill="none" stroke="#e0e0e0" strokeWidth={2.2} />
               </>
             )}
             {gate.type === 'SPLIT' && (
@@ -473,15 +497,46 @@ export default function CircuitCanvas() {
               </>
             )}
             {gate.type === 'INPUT' && (
-              <text
-                x={0}
-                y={-height / 2 - 8}
-                className="gate-value-label"
-                textAnchor="middle"
-                fontSize={`${snap * 0.12}px`}
-              >
-                {gate.initial ? '1' : '0'}
-              </text>
+              <>
+                {gate.label && (
+                  (() => {
+                    const pocketW = Math.max(10, width * 0.24);
+                    const pocketH = Math.max(10, height * 0.45);
+                    const px = -width / 2 - pocketW; // attach flush to the square
+                    const py = -pocketH / 2;
+                    const radius = 3;
+                    const labelSize = pocketH * 0.42;
+                    return (
+                      <g className="input-pocket">
+                        <rect x={px} y={py} width={pocketW} height={pocketH} rx={radius} ry={radius}
+                          fill="#1a1a24" stroke="#444" strokeWidth={1.4} />
+                        <text
+                          x={px + pocketW / 2}
+                          y={0}
+                          className="gate-value-label"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fontSize={`${labelSize}`}
+                          style={{ fontWeight: 600, opacity: 0.9 }}
+                        >
+                          {gate.label}
+                        </text>
+                      </g>
+                    );
+                  })()
+                )}
+                <text
+                  x={0}
+                  y={0}
+                  className="gate-value-label"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={`${Math.min(width, height) * 0.5}`}
+                  style={{ fontWeight: 800 }}
+                >
+                  {gate.initial ? '1' : '0'}
+                </text>
+              </>
             )}
           </>
         )}
@@ -567,7 +622,7 @@ export default function CircuitCanvas() {
             </g>
           );
         })}
-        {gate.label && (
+        {gate.label && gate.type !== 'INPUT' && gate.type !== 'OUTPUT' && (
           <text
             className="gate-label"
             x={0}
@@ -600,10 +655,45 @@ export default function CircuitCanvas() {
       return null;
     }
 
-    // Use path coordinates directly - ensure proper format for SVG path
-    const pathStr = wire.path.map((p, idx) => {
-      return `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
-    }).join(' ');
+    // Build a rounded-corner path from Manhattan points
+    const buildRoundedPath = (pts: { x: number; y: number }[], r: number): string => {
+      if (pts.length === 2) {
+        return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+      }
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 1; i < pts.length; i++) {
+        const p0 = pts[i - 1];
+        const p1 = pts[i];
+        const p2 = i + 1 < pts.length ? pts[i + 1] : undefined;
+        if (!p2) {
+          d += ` L ${p1.x} ${p1.y}`;
+          break;
+        }
+        const dx1 = p1.x - p0.x;
+        const dy1 = p1.y - p0.y;
+        const dx2 = p2.x - p1.x;
+        const dy2 = p2.y - p1.y;
+        // Only round if it's a corner (changes direction)
+        if ((dx1 === 0 && dy1 !== 0 && dx2 !== 0 && dy2 === 0) || (dx1 !== 0 && dy1 === 0 && dx2 === 0 && dy2 !== 0)) {
+          const len1 = Math.max(1, Math.abs(dx1) + Math.abs(dy1));
+          const len2 = Math.max(1, Math.abs(dx2) + Math.abs(dy2));
+          const rr = Math.min(r, len1 / 2, len2 / 2);
+          // incoming end point
+          const ex = p1.x - Math.sign(dx1) * rr;
+          const ey = p1.y - Math.sign(dy1) * rr;
+          // outgoing start point
+          const sx = p1.x + Math.sign(dx2) * rr;
+          const sy = p1.y + Math.sign(dy2) * rr;
+          d += ` L ${ex} ${ey} Q ${p1.x} ${p1.y} ${sx} ${sy}`;
+        } else {
+          d += ` L ${p1.x} ${p1.y}`;
+        }
+      }
+      return d;
+    };
+
+    const cornerR = Math.max(4, ui.gridSnap * 0.2);
+    const pathStr = buildRoundedPath(wire.path, cornerR);
 
     return (
       <path
@@ -631,7 +721,41 @@ export default function CircuitCanvas() {
     const midX = x2;
     const midY = y1;
     
-    const pathStr = `M ${x1} ${y1} L ${midX} ${midY} L ${x2} ${y2}`;
+    const previewPts = [
+      { x: x1, y: y1 },
+      { x: midX, y: midY },
+      { x: x2, y: y2 },
+    ];
+    const cornerR = Math.max(4, ui.gridSnap * 0.2);
+    const pathStr = (() => {
+      // inline small helper (same logic as above) to avoid hoisting
+      const build = (pts: { x: number; y: number }[], r: number): string => {
+        if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+        let d = `M ${pts[0].x} ${pts[0].y}`;
+        for (let i = 1; i < pts.length; i++) {
+          const p0 = pts[i - 1];
+          const p1 = pts[i];
+          const p2 = i + 1 < pts.length ? pts[i + 1] : undefined;
+          if (!p2) { d += ` L ${p1.x} ${p1.y}`; break; }
+          const dx1 = p1.x - p0.x, dy1 = p1.y - p0.y;
+          const dx2 = p2.x - p1.x, dy2 = p2.y - p1.y;
+          if ((dx1 === 0 && dy1 !== 0 && dx2 !== 0 && dy2 === 0) || (dx1 !== 0 && dy1 === 0 && dx2 === 0 && dy2 !== 0)) {
+            const len1 = Math.max(1, Math.abs(dx1) + Math.abs(dy1));
+            const len2 = Math.max(1, Math.abs(dx2) + Math.abs(dy2));
+            const rr = Math.min(r, len1 / 2, len2 / 2);
+            const ex = p1.x - Math.sign(dx1) * rr;
+            const ey = p1.y - Math.sign(dy1) * rr;
+            const sx = p1.x + Math.sign(dx2) * rr;
+            const sy = p1.y + Math.sign(dy2) * rr;
+            d += ` L ${ex} ${ey} Q ${p1.x} ${p1.y} ${sx} ${sy}`;
+          } else {
+            d += ` L ${p1.x} ${p1.y}`;
+          }
+        }
+        return d;
+      };
+      return build(previewPts, cornerR);
+    })();
 
     return (
       <path
@@ -649,8 +773,8 @@ export default function CircuitCanvas() {
     // Snap to grid for ghost gate placement
     const [sx, sy] = snapToGrid(mousePos.x, mousePos.y);
     const snap = ui.gridSnap;
-    const width = snap * 1.05;
-    const height = snap * 1.05;
+    const width = snap * 1.12;
+    const height = snap * 1.12;
     const stroke = GATE_COLORS[armedGateType];
     const sw = 2;
 
@@ -822,26 +946,11 @@ export default function CircuitCanvas() {
 
   if (!currentLevel) return null;
 
-  // Calculate bounds for viewBox to show all gates with padding
-  const allGates = gates.length > 0 ? gates : [...(currentLevel.inputs || []), ...(currentLevel.outputs || [])];
-  const snap = currentLevel.grid.snap;
-  let minX = snap;
-  let maxX = (currentLevel.grid.cols - 1) * snap;
-  let minY = 0; // Anchor viewBox to the top so the bar sits at the top
-  let maxY = (currentLevel.grid.rows - 1) * snap;
-  
-  if (allGates.length > 0) {
-    const xs = allGates.map(g => g.x);
-    const ys = allGates.map(g => g.y);
-    minX = Math.min(...xs) - snap * 4;
-    maxX = Math.max(...xs) + snap * 4;
-    // Keep the top anchored at 0 so the bar remains at the top
-    minY = 0;
-    maxY = Math.max(...ys) + snap * 4;
-  }
-  
-  const viewBoxWidth = Math.max(maxX - minX, currentLevel.grid.cols * snap);
-  const viewBoxHeight = Math.max(maxY - minY, (currentLevel.grid.rows + 1) * snap); // Extra space for bar
+  // Derive viewBox from viewport and UI zoom/offset so object sizes remain constant on resize
+  const viewBoxWidth = Math.max(1, (viewport.w || 1) / Math.max(0.0001, ui.zoom));
+  const viewBoxHeight = Math.max(1, (viewport.h || 1) / Math.max(0.0001, ui.zoom));
+  const minX = -ui.offsetX;
+  const minY = -ui.offsetY;
 
   // Live guide evaluation: compute which wires carry a logical 1 from current inputs
   const liveActiveWireIds = useMemo(() => {
@@ -1053,6 +1162,15 @@ export default function CircuitCanvas() {
               const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
               return (
                 <>
+                  <button
+                    className="primary"
+                    disabled={sim.running}
+                    onClick={() => runSimulation()}
+                    title="Submit"
+                    style={{ marginRight: 12 }}
+                  >
+                    {sim.running ? 'Submitting…' : 'Submit'}
+                  </button>
                   <button className="ioc-next" disabled={!nextId} onClick={() => nextId && navigate(`/play/${nextId}`)}>
                     Next ›
                   </button>
