@@ -551,8 +551,16 @@ export default function CircuitCanvas() {
                 className="port-hit"
                 cx={cx}
                 cy={cy}
-                r={portSize * 1.6}
+                r={portSize * 2.2}
                 onMouseDown={(e) => {
+                  e.stopPropagation();
+                  if (wireStart) {
+                    completeWire(gate.id, port.index);
+                    setMousePos(null);
+                    playSnap();
+                  }
+                }}
+                onClick={(e) => {
                   e.stopPropagation();
                   if (wireStart) {
                     completeWire(gate.id, port.index);
@@ -584,7 +592,7 @@ export default function CircuitCanvas() {
                 className="port-hit"
                 cx={cx}
                 cy={cy}
-                r={portSize * 1.8}
+                r={portSize * 2.4}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   const portWorldX = gate.x + (width / 2 + portSize / 2) + (portSize * 0.6);
