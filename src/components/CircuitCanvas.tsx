@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import './CircuitCanvas.css';
 import { playClick, playSnap } from '../utils/sound';
 import TruthTableModal from './TruthTableModal';
+import ConfirmSkipModal from './ConfirmSkipModal';
 
 const GATE_COLORS: Record<GateType, string> = {
   INPUT: '#3cfaa5',
@@ -45,6 +46,7 @@ export default function CircuitCanvas() {
   const [levelIds, setLevelIds] = useState<string[]>([]);
   const [dragging, setDragging] = useState<{ gateId: string; startX: number; startY: number; offsetX: number; offsetY: number } | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const [showConfirmSkip, setShowConfirmSkip] = useState(false);
   
   const {
     gates,
@@ -60,6 +62,7 @@ export default function CircuitCanvas() {
     moveGate,
     startWire,
     completeWire,
+    cancelWire,
     deleteSelection,
     setZoom,
     setOffset,
@@ -226,6 +229,19 @@ export default function CircuitCanvas() {
     return () => window.removeEventListener('keydown', onKey);
   }, [deleteSelection]);
 
+  // Escape to cancel wire drawing
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && wireStart) {
+        e.preventDefault();
+        cancelWire();
+        setMousePos(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [wireStart, cancelWire]);
+
   const handleCanvasClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
     const rect = svgRef.current?.getBoundingClientRect();
@@ -254,10 +270,14 @@ export default function CircuitCanvas() {
       // Place IO from tray
       placeIO(armedIOId, sx, sy);
       playClick();
+    } else if (wireStart) {
+      // Cancel an in-progress wire if clicking empty canvas
+      cancelWire();
+      setMousePos(null);
     } else {
       setSelection();
     }
-  }, [armedGateType, armedIOId, screenToWorld, snapToGrid, placeGate, placeIO, setSelection]);
+  }, [armedGateType, armedIOId, wireStart, cancelWire, screenToWorld, snapToGrid, placeGate, placeIO, setSelection]);
 
   const handleGateMouseDown = useCallback((e: React.MouseEvent, gate: Gate) => {
     e.stopPropagation();
@@ -1166,8 +1186,6 @@ export default function CircuitCanvas() {
         <div className="ioc-right">
           {currentLevel && (
             (() => {
-              const idx = levelIds.indexOf(currentLevel.id);
-              const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
               return (
                 <>
                   <button
@@ -1179,21 +1197,85 @@ export default function CircuitCanvas() {
                   >
                     {sim.running ? 'Submitting…' : 'Submit'}
                   </button>
-                  <button className="ioc-next" disabled={!nextId} onClick={() => nextId && navigate(`/play/${nextId}`)}>
-                    Next ›
-                  </button>
                 </>
               );
             })()
           )}
         </div>
       </div>
+      {currentLevel && (() => {
+        const idx = levelIds.indexOf(currentLevel.id);
+        const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
+        return (
+          <button
+            className="fab-next"
+            disabled={!nextId}
+            aria-label="Next level"
+            title="Next level"
+            onClick={() => {
+              if (!nextId) return;
+              if (sim.last?.success) {
+                navigate(`/play/${nextId}`);
+              } else {
+                setShowConfirmSkip(true);
+              }
+            }}
+          >
+            <svg className="fab-next-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden>
+              <path d="M8 5 L16 12 L8 19" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        );
+      })()}
+
       <svg
         ref={svgRef}
         className="circuit-canvas grid-bg"
         viewBox={`${minX} ${minY} ${viewBoxWidth} ${viewBoxHeight}`}
         preserveAspectRatio="xMidYMin meet"
         onClick={handleCanvasClick}
+        onContextMenu={(e) => {
+          if (wireStart) {
+            e.preventDefault();
+            cancelWire();
+            setMousePos(null);
+          }
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          const rect = svgRef.current?.getBoundingClientRect();
+          if (!rect) return;
+          const [wx, wy] = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+          const [sx, sy] = snapToGrid(wx, wy);
+          const raw = e.dataTransfer.getData('text/plain');
+          try {
+            const data = JSON.parse(raw);
+            if (data?.kind === 'gate' && data.gateType) {
+              // Prevent placing on top of IO (same as click logic)
+              const snap = ui.gridSnap;
+              const gateHalf = (snap * 0.8) / 2;
+              const hitIO = gates.some(g =>
+                (g.type === 'INPUT' || g.type === 'OUTPUT') &&
+                Math.abs(sx - g.x) <= gateHalf &&
+                Math.abs(sy - g.y) <= gateHalf
+              );
+              if (!hitIO) {
+                placeGate(data.gateType, sx, sy);
+                playClick();
+                setArmedGateType(null);
+              }
+            } else if (data?.kind === 'io' && data.id) {
+              placeIO(data.id, sx, sy);
+              playClick();
+            }
+          } catch {
+            // Ignore invalid drops
+          }
+        }}
         onMouseMove={(e) => {
           const rect = svgRef.current?.getBoundingClientRect();
           if (rect) {
@@ -1229,6 +1311,19 @@ export default function CircuitCanvas() {
           onClose={() => setTruthTableVisible(false)}
         />
       )}
+      {showConfirmSkip && (() => {
+        const idx = levelIds.indexOf(currentLevel!.id);
+        const nextId = idx >= 0 && idx + 1 < levelIds.length ? levelIds[idx + 1] : undefined;
+        return (
+          <ConfirmSkipModal
+            onCancel={() => setShowConfirmSkip(false)}
+            onConfirm={() => {
+              setShowConfirmSkip(false);
+              if (nextId) navigate(`/play/${nextId}`);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
