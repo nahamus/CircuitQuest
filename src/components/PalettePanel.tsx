@@ -76,6 +76,12 @@ export default function PalettePanel() {
                 className={`palette-item tile ${disabled ? 'disabled' : ''} ${isArmed ? 'armed' : ''}`}
                 title={GATE_DESCRIPTIONS[type]}
                 onClick={() => handleClick(type)}
+                draggable={!disabled}
+                onDragStart={(e) => {
+                  if (disabled) return;
+                  e.dataTransfer.effectAllowed = 'copy';
+                  e.dataTransfer.setData('text/plain', JSON.stringify({ kind: 'gate', gateType: type }));
+                }}
               >
                 <div className="tile-icon" aria-hidden>
                   {renderSymbol(type)}

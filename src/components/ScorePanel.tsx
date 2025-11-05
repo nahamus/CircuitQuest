@@ -45,7 +45,7 @@ export default function ScorePanel() {
         </button>
       </div>
       <div className="side-actions">
-        <button className="side-btn danger" onClick={resetLevel}>↺ Reset</button>
+        <button className="side-btn danger" onClick={resetLevel}>Clear Canvas</button>
         {/* Run button moved to on-canvas overlay */}
         <div className="side-divider" />
         <button

@@ -44,8 +44,8 @@ export default function HelpModal({ onClose }: { onClose: () => void }) {
               <div className="help-text">Drag to move. Click to select. Press Delete to remove selected.</div>
             </div>
             <div className="help-item">
-              <div className="help-title">Run & Reset</div>
-              <div className="help-text">Use Run and Reset on the right panel. On success, you’ll auto‑advance (or use Next on the top bar).</div>
+              <div className="help-title">Run & Clear Canvas</div>
+              <div className="help-text">Use Run and Clear Canvas on the right panel. On success, you’ll auto‑advance (or use Next).</div>
             </div>
           </div>
         </div>

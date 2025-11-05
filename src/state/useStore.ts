@@ -267,8 +267,8 @@ export const useStore = create<StoreState>((set, get) => ({
   moveGate: (gateId: string, x: number, y: number) => {
     const state = get();
     const snap = state.ui.gridSnap;
-    const gateWidth = snap * 0.9;
-    const gateHeight = snap * 0.9;
+    const gateWidth = snap * 1.12;
+    const gateHeight = snap * 1.12;
     const portSize = snap * 0.22; // match render
     const ringRadius = portSize * 0.6; // match render ring size
     
@@ -321,8 +321,8 @@ export const useStore = create<StoreState>((set, get) => ({
     
     // Calculate the actual port position for the wire start
     const snap = state.ui.gridSnap;
-    const gateWidth = snap * 0.9;
-    const gateHeight = snap * 0.9;
+    const gateWidth = snap * 1.12;
+    const gateHeight = snap * 1.12;
     const portSize = snap * 0.22; // match render
     const ringRadius = portSize * 0.6;
     
@@ -363,8 +363,8 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     
     const snap = state.ui.gridSnap;
-    const gateWidth = snap * 0.9;
-    const gateHeight = snap * 0.9;
+    const gateWidth = snap * 1.12;
+    const gateHeight = snap * 1.12;
     const portSize = snap * 0.22; // match render
     const ringRadius = portSize * 0.6;
     

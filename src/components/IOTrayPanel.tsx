@@ -22,6 +22,12 @@ export default function IOTrayPanel() {
               className={`io-tray-item ${isArmed ? 'armed' : ''}`}
               title={g.target !== undefined ? `Target ${g.target ? '1' : '0'}` : (g.initial !== undefined ? `Initial ${g.initial ? '1' : '0'}` : '')}
               onClick={() => { setSelection(); setArmedIO(isArmed ? null : g.id); }}
+              draggable
+              onDragStart={(e) => {
+                // Allow dropping onto canvas to place IO
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', JSON.stringify({ kind: 'io', id: g.id }));
+              }}
             >
               <div className="io-tray-name">{g.label || g.id}</div>
               {g.target !== undefined && (
