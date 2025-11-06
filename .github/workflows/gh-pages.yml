@@ -17,6 +17,8 @@ jobs:
         with: { node-version: 20 }
       - run: npm install
       - run: npm run build
+      - name: Add SPA fallback (copy index.html to 404.html)
+        run: cp dist/index.html dist/404.html
       - name: Upload Pages artifact (used on master deploy)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
         uses: actions/upload-pages-artifact@v3
